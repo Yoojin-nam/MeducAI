@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meducai.local/0_Protocol/04_Step_Contracts/Step02_S2/S2_Image_Hint_Schema_v2.json",
+  "title": "MeducAI S2 Image Hint Schema v2 (structured constraints)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["anatomy", "rendering_policy", "safety"],
+  "properties": {
+    "anatomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organ_system", "organ", "laterality"],
+      "properties": {
+        "organ_system": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Broad system label (e.g., Gastrointestinal, Hepatobiliary, Musculoskeletal, Neuro, Cardiovascular)."
+        },
+        "organ": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Primary organ/structure name (English medical term preferred)."
+        },
+        "subregion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional finer subregion (e.g., fundus/antrum, hepatic dome/segment, basal ganglia)."
+        },
+        "laterality": {
+          "type": "string",
+          "enum": ["L", "R", "Midline", "NA"],
+          "description": "Laterality constraint for depiction. Use NA if not applicable or unknown."
+        },
+        "orientation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "view_plane": {
+              "type": "string",
+              "enum": ["axial", "coronal", "sagittal", "oblique", "NA"]
+            },
+            "projection": {
+              "type": "string",
+              "enum": ["AP", "PA", "lateral", "oblique", "NA"]
+            },
+            "patient_position": {
+              "type": "string",
+              "enum": ["supine", "prone", "decubitus", "NA"]
+            }
+          }
+        },
+        "key_landmarks_to_include": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Short list of anatomical landmarks that must be present (for localization / topology)."
+        },
+        "forbidden_structures": {
+          "type": "array",
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Structures that must NOT be shown (avoid hallucinated organs, wrong side, or distracting elements)."
+        },
+        "adjacency_rules": {
+          "type": "array",
+          "maxItems": 12,
+          "description": "Compact adjacency/connection relations. Accepts either short strings or structured triples.",
+          "items": {
+            "anyOf": [
+              { "type": "string", "minLength": 1 },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["a", "relation", "b"],
+                "properties": {
+                  "a": { "type": "string", "minLength": 1 },
+                  "relation": {
+                    "type": "string",
+                    "enum": [
+                      "adjacent_to",
+                      "connects_to",
+                      "anterior_to",
+                      "posterior_to",
+                      "superior_to",
+                      "inferior_to",
+                      "medial_to",
+                      "lateral_to",
+                      "within"
+                    ]
+                  },
+                  "b": { "type": "string", "minLength": 1 }
+                }
+              }
+            ]
+          }
+        },
+        "topology_constraints": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Short textual topology rules (e.g., postoperative anastomosis connections). Prefer omission over guessing."
+        }
+      }
+    },
+    "pathology_depiction": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional: only include when the card explicitly requires lesion depiction constraints.",
+      "properties": {
+        "lesion_location": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative location using landmarks (e.g., 'subcapsular segment 6 near gallbladder fossa')."
+        },
+        "lesion_count": {
+          "type": "string",
+          "enum": ["single", "few", "multiple", "NA"]
+        },
+        "lesion_size_bucket": {
+          "type": "string",
+          "enum": ["tiny", "small", "medium", "large", "NA"]
+        },
+        "signal_or_attenuation": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Qualitative imaging descriptors when applicable (e.g., 'T2 hyperintense', 'arterial enhancement', 'washout')."
+        }
+      }
+    },
+    "rendering_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["style_target", "text_budget"],
+      "properties": {
+        "style_target": {
+          "type": "string",
+          "enum": ["flat_grayscale_diagram"],
+          "default": "flat_grayscale_diagram"
+        },
+        "text_budget": {
+          "type": "string",
+          "enum": ["no_text", "minimal_labels_only"],
+          "default": "minimal_labels_only"
+        },
+        "label_whitelist": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "forbidden_styles": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "enum": [
+              "photorealistic",
+              "PACS_UI",
+              "DICOM_overlay",
+              "window_level_bars",
+              "scan_noise",
+              "watermark",
+              "brand_logo"
+            ]
+          },
+          "default": ["photorealistic", "PACS_UI", "DICOM_overlay", "window_level_bars"]
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requires_human_review"],
+      "properties": {
+        "requires_human_review": {
+          "type": "boolean",
+          "default": false,
+          "description": "If constraints are insufficient/uncertain, mark for review and use conservative fallback behavior."
+        },
+        "fallback_mode": {
+          "type": "string",
+          "enum": ["generic_conservative_diagram", "fallback_general_template"],
+          "default": "generic_conservative_diagram"
+        }
+      }
+    }
+  }
+}
+
+

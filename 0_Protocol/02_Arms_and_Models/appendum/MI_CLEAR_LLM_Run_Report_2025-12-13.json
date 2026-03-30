@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-12-13T21:19:11.353351",
+  "model_info": {
+    "name": "models/gemini-2.5-flash",
+    "library_version": "0.8.5"
+  },
+  "generation_parameters": {
+    "temperature": 0.2,
+    "top_p": 0.95,
+    "top_k": 40,
+    "max_output_tokens": 8192,
+    "response_mime_type": "application/json"
+  },
+  "input_data": {
+    "source_file": "../2_data/processed/Radiology_Curriculum_Tagged.xlsx",
+    "description": "Radiology Curriculum with Tags (Physics/QC included)"
+  },
+  "prompts": {
+    "system_prompt": "\nYou are a Radiology Professor and Educational Technologist.\nYour task is to analyze the given list of 'Learning Objectives' and generate structured data for Anki cards and Infographics.\nUse the provided 'Context' (Tags) to understand the specific anatomical, pathological, or physical domain.\n\n**Output Schema (JSON List):**\n[\n  {\n    \"id\": \"Use the provided ID\",\n    \"objective\": \"Original Objective Text\",\n    \"visual_type\": \"Select ONE strictly from: [Anatomy, Pathology_Gross, Radiograph, Histology, Clinical_Photo, Physics_Diagram, Physics_Graph, Equipment_Structure, Imaging_Artifact, MRI_Pulse_Sequence, QC_Phantom, Default]\",\n    \"anki_type\": \"Select ONE: [ANKI_VISUAL, ANKI_CLOZE, ANKI_MCQ, ANKI_BASIC]\",\n    \"image_necessity\": \"Select ONE: [IMG_REQ, IMG_OPT, IMG_NONE]\",\n    \"image_keywords_en\": \"3-5 visual keywords for image generation (English only, visual description). For Physics, describe the arrows, components, or graph axes.\",\n    \"table_markdown_kr\": \"Markdown table content (Korean). Detailed comparison or summary.\",\n    \"short_explanation_kr\": \"1-line summary for Anki back card (Korean).\"\n  }\n]\n\n**Rules for 'visual_type' Selection:**\n1. **Anatomy**: Anatomical structures (e.g., Lung lobes, Circle of Willis).\n2. **Pathology_Gross**: Gross disease features (e.g., Liver cirrhosis appearance).\n3. **Radiograph**: X-ray/CT/MRI findings (e.g., Pneumonia on CXR).\n4. **Physics_Diagram**: Principles, interactions, vectors (e.g., Compton scattering, Heel effect).\n5. **Physics_Graph**: Spectra, characteristic curves, histograms.\n6. **Equipment_Structure**: Hardware components (e.g., X-ray tube, CT Gantry).\n7. **Imaging_Artifact**: Specific image faults (e.g., Ring artifact, Aliasing).\n8. **MRI_Pulse_Sequence**: Timing diagrams (e.g., Spin Echo sequence).\n9. **QC_Phantom**: Quality control test patterns (e.g., SMPTE pattern).\n\n**General Rules:**\n1. If the objective is purely administrative (e.g., 'List the laws') or abstract without visual potential -> 'image_necessity': \"IMG_NONE\".\n2. For Physics/Equipment objectives, PREFER 'Physics_Diagram', 'Equipment_Structure', or 'Physics_Graph' over 'Default'.\n3. 'image_keywords_en' must be descriptive prompts for an image generator (e.g., 'Schematic diagram of X-ray tube components including anode and cathode' instead of just 'X-ray tube').\n",
+    "input_template": "ID: {row_id} | Context: {tags} | Objective: {obj_text}"
+  },
+  "notes": "Automated pipeline for RadPrep-AI curriculum generation (Updated for Physics)."
+}

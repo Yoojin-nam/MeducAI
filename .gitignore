@@ -1,0 +1,153 @@
+# =========================================================
+# Secrets & Credentials (NEVER COMMIT)
+# =========================================================
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*credentials*
+*secret*
+*.secrets.*
+
+# =========================================================
+# Secure / PHI / Participant Info (IRB)
+# =========================================================
+1_Secure_Participant_Info/
+**/1_Secure_Participant_Info/
+**/*participant*
+**/*consent*
+**/*phi*
+
+# =========================================================
+# Large Data & Generated Runtime Artifacts
+# =========================================================
+# Raw / generated data (SSOT 아님)
+2_Data/
+**/images/**
+**/*.dcm
+**/*.nii
+**/*.nii.gz
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.tiff
+
+# RUN_TAG 기반 생성물 (재현용으로 로컬 보존, git 제외)
+2_Data/metadata/generated/
+**/metadata/generated/
+
+# QA 응답 데이터 (원시 데이터는 1_Secure_Participant_Info에 저장되므로 별도 설정 불필요)
+# 1_Secure_Participant_Info/ 폴더 전체가 이미 제외됨
+
+# Logs
+**/logs/
+*.log
+
+# =========================================================
+# Python / Jupyter
+# =========================================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+*.ipynb
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# =========================================================
+# OS / Editor
+# =========================================================
+.DS_Store
+.DS_Store?
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Cursor / IDE agent artifacts (local only)
+.cursor/
+
+# =========================================================
+# Temporary / Scratch / Local experiments
+# =========================================================
+tmp/
+temp/
+scratch/
+sandbox/
+9_Future_Work/
+5_Meeting/
+6_Distributions/
+7_Manuscript/
+
+# Local backups (large / not reproducible / not for git)
+BACKUP_BEFORE_*/
+back/
+
+# =========================================================
+# Outputs not intended for version control
+# =========================================================
+**/*_DEV_SMOKE*
+**/*_SMOKE*
+**/*_TEST_RUN*
+**/*_LOCAL*
+
+# =========================================================
+# Allowlist (IMPORTANT)
+# =========================================================
+# Protocol / Governance / Canonical documents MUST be tracked
+!0_Protocol/**
+!00_Governance/**
+!01_Execution_Safety/**
+!02_Arms_and_Models/**
+!03_CardCount_and_Allocation/**
+!04_Step_Contracts/**
+!05_Pipeline_and_Execution/**
+!README.md
+1_Secure_Participant_Info/QA_Operations/*.csv
+.env
+.env.*
+
+# Archived data (too large for git)
+99_archived/
+
+# =========================================================
+# Public Repository Safety (PII / Binary exclusions)
+# =========================================================
+
+# CoAuthor comments (internal communications with PII)
+0_Protocol/07_CoAuthor_Comments/
+
+# IRB documents (investigator PII in binary files)
+0_Protocol/IRB/*.docx
+0_Protocol/IRB/Investigator_Documents/CV/
+0_Protocol/IRB/Investigator_Documents/Ethics_Training/
+
+# Legacy archive (unaudited PII)
+0_Protocol/archive/
+
+# Google Workspace link files (contain account email in metadata)
+*.gform
+*.gdoc
+*.gsheet
+
+# Presentations (binary, may contain PII, too large)
+*.pptx
+
+# Specific PDFs with PII
+0_Protocol/06_QA_and_Study/MeducAI_Research_Overview_Presentation.pdf
+0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Participants.pdf
+0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Residents.pdf
+0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Specialists.pdf
+0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Participants.html
+0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Participants_print.html
+MeducAI_Research_Overview.pptx
+
+# Claude local settings (may contain user-specific paths)
+.claude/settings.local.json

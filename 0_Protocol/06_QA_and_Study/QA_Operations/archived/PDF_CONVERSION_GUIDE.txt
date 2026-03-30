@@ -1,0 +1,22 @@
+FINAL QA 평가 기준 안내 - PDF 변환 가이드
+==========================================
+
+HTML 파일이 생성되었습니다: FINAL_QA_Evaluation_Guide_for_Participants_print.html
+
+PDF로 변환하는 방법:
+
+방법 1: 브라우저 사용 (권장)
+1. HTML 파일을 브라우저(Safari, Chrome 등)에서 엽니다
+2. Cmd+P (또는 File > Print)를 누릅니다
+3. 프린터 선택에서 "PDF로 저장"을 선택합니다
+4. 파일명을 "FINAL_QA_Evaluation_Guide_for_Participants.pdf"로 저장합니다
+
+방법 2: 명령어로 브라우저 열기
+터미널에서 다음 명령어 실행:
+  open FINAL_QA_Evaluation_Guide_for_Participants_print.html
+
+그 다음 위의 방법 1을 따라주세요.
+
+파일 위치:
+  /Users/medipixel/workspace/MeducAI/0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Participants_print.html
+

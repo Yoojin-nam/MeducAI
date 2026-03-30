@@ -1,0 +1,850 @@
+{
+  "CT와 MRI 검사": {
+    "label": "CT and MRI examinations",
+    "tag": "ct_mri_exams"
+  },
+  "Computed Radiography (CR)": {
+    "label": "Computed radiography",
+    "tag": "computed_rad_cr"
+  },
+  "Conventional angiography 및 digital subtraction angiography (DSA)": {
+    "label": "Conventional angiography and digital subtraction angiography",
+    "tag": "conventional_angio_dsa"
+  },
+  "Digital Radiography (DR)": {
+    "label": "Digital radiography",
+    "tag": "digital_rad_dr"
+  },
+  "Filters, X-ray beam restrictors, Grids": {
+    "label": "Filters, X-ray beam restrictors, grids",
+    "tag": "filters_xray_restrictors_grids"
+  },
+  "Luminescent Screens": {
+    "label": "Luminescent screens",
+    "tag": "luminescent_screens"
+  },
+  "X-선": {
+    "label": "X-ray",
+    "tag": "xray"
+  },
+  "X-선 필름의 물리적 특성과 사진특성": {
+    "label": "Physical and photographic properties of X-ray film",
+    "tag": "xray_film_phys_photo"
+  },
+  "X-선과 물질 사이의 기본적 상호작용": {
+    "label": "Basic interaction between X-rays and matter",
+    "tag": "xray_matter_interaction"
+  },
+  "X-선의 발생": {
+    "label": "X-ray generation",
+    "tag": "xray_generation"
+  },
+  "간": {
+    "label": "Liver",
+    "tag": "liver"
+  },
+  "간 실질 질환": {
+    "label": "Liver parenchymal disease",
+    "tag": "liver_parenchymal_disease"
+  },
+  "간담도계": {
+    "label": "Hepatobiliary system",
+    "tag": "hepatobiliary"
+  },
+  "간담도계 및 췌장": {
+    "label": "Hepatobiliary system and pancreas",
+    "tag": "hepatobiliary_pancreas"
+  },
+  "감염": {
+    "label": "Infection",
+    "tag": "infection"
+  },
+  "감염성 뇌 질환": {
+    "label": "Infectious brain disease",
+    "tag": "infectious_brain_disease"
+  },
+  "감염성 질환": {
+    "label": "Infectious disease",
+    "tag": "infectious_disease"
+  },
+  "감염성 질환 및 관절염": {
+    "label": "Infectious disease and arthritis",
+    "tag": "infectious_disease_arthritis"
+  },
+  "갑상선": {
+    "label": "Thyroid gland",
+    "tag": "thyroid"
+  },
+  "갑상선 결절": {
+    "label": "Thyroid nodule",
+    "tag": "thyroid_nodule"
+  },
+  "갑상선 수술": {
+    "label": "Thyroid surgery",
+    "tag": "thyroid_surgery"
+  },
+  "갑상선 종양": {
+    "label": "Thyroid tumor",
+    "tag": "thyroid_tumor"
+  },
+  "검사 수기": {
+    "label": "Examination technique",
+    "tag": "exam_technique"
+  },
+  "견관절": {
+    "label": "Shoulder joint",
+    "tag": "shoulder_joint"
+  },
+  "결석": {
+    "label": "Stone",
+    "tag": "stone"
+  },
+  "경부 및 두개기저부": {
+    "label": "Neck and skull base",
+    "tag": "neck_skull_base"
+  },
+  "경부 및 두개저부": {
+    "label": "Neck and skull base",
+    "tag": "neck_skull_base"
+  },
+  "고관절 및 골반": {
+    "label": "Hip joint and pelvis",
+    "tag": "hip_pelvis"
+  },
+  "고위험 병변 (high risk lesion)": {
+    "label": "High risk lesion",
+    "tag": "high_risk_lesion"
+  },
+  "골 및 연조직": {
+    "label": "Bone and soft tissue",
+    "tag": "bone_soft_tissue"
+  },
+  "관절 질환": {
+    "label": "Joint disease",
+    "tag": "joint_disease"
+  },
+  "구강, 인두, 및 후두": {
+    "label": "Oral cavity, pharynx, and larynx",
+    "tag": "oral_pharynx_larynx"
+  },
+  "구체적인 수기목표": {
+    "label": "Specific procedural goals",
+    "tag": "specific_procedural_goals"
+  },
+  "근골격계": {
+    "label": "Musculoskeletal system",
+    "tag": "msk"
+  },
+  "근골격계 영상의학": {
+    "label": "Musculoskeletal radiology",
+    "tag": "msk_rad"
+  },
+  "기도 질환": {
+    "label": "Airway disease",
+    "tag": "airway_disease"
+  },
+  "기본 물리": {
+    "label": "Basic physics",
+    "tag": "basic_physics"
+  },
+  "기타 병변": {
+    "label": "Other lesion",
+    "tag": "other_lesion"
+  },
+  "기타 질환": {
+    "label": "Other disease",
+    "tag": "other_disease"
+  },
+  "난소 및 부속기": {
+    "label": "Ovary and adnexa",
+    "tag": "ovary_adnexa"
+  },
+  "남성 생식기관": {
+    "label": "Male reproductive system",
+    "tag": "male_reproductive"
+  },
+  "내분비 및 대사성 질환": {
+    "label": "Endocrine and metabolic disease",
+    "tag": "endocrine_metabolic_disease"
+  },
+  "내분비계": {
+    "label": "Endocrine system",
+    "tag": "endocrine"
+  },
+  "뇌": {
+    "label": "Brain",
+    "tag": "brain"
+  },
+  "뇌신경계": {
+    "label": "Cranial nervous system",
+    "tag": "cranial_nervous_system"
+  },
+  "뇌신경계 및 두경부 영상의학": {
+    "label": "Neuroradiology and head and neck radiology",
+    "tag": "neuro_hn_rad"
+  },
+  "뇌종양": {
+    "label": "Brain tumor",
+    "tag": "brain_tumor"
+  },
+  "뇌혈관조영술과 인터벤션": {
+    "label": "Cerebral angiography and intervention",
+    "tag": "cerebral_angio_intervention"
+  },
+  "담도": {
+    "label": "Bile duct",
+    "tag": "bile_duct"
+  },
+  "담도 및 담낭": {
+    "label": "Bile duct and gallbladder",
+    "tag": "bile_duct_gallbladder"
+  },
+  "담도계": {
+    "label": "Biliary system",
+    "tag": "biliary_system"
+  },
+  "대동맥": {
+    "label": "Aorta",
+    "tag": "aorta"
+  },
+  "대동맥 및 분지혈관계": {
+    "label": "Aorta and branch vasculature",
+    "tag": "aorta_branch_vasculature"
+  },
+  "대사성 뇌질환": {
+    "label": "Metabolic brain disease",
+    "tag": "metabolic_brain_disease"
+  },
+  "대사성 및 내분비성 질환": {
+    "label": "Metabolic and endocrine disease",
+    "tag": "metabolic_endocrine_disease"
+  },
+  "대사성, 탈수초성, 퇴행성 질환 및 기타": {
+    "label": "Metabolic, demyelinating, degenerative diseases and others",
+    "tag": "metabolic_demyelinating_degenerative"
+  },
+  "대장": {
+    "label": "Colon",
+    "tag": "colon"
+  },
+  "동맥": {
+    "label": "Artery",
+    "tag": "artery"
+  },
+  "두경부": {
+    "label": "Head and neck",
+    "tag": "head_neck"
+  },
+  "말초동맥": {
+    "label": "Peripheral artery",
+    "tag": "peripheral_artery"
+  },
+  "면역계": {
+    "label": "Immune system",
+    "tag": "immune_system"
+  },
+  "면역기능 변형 및 원인불명질환": {
+    "label": "Immune dysfunction and idiopathic disease",
+    "tag": "immune_dysfunction_idiopathic"
+  },
+  "물리": {
+    "label": "Physics",
+    "tag": "physics"
+  },
+  "물리, 품질관리 및 의료정보": {
+    "label": "Physics, quality control and medical information",
+    "tag": "phys_qc_medinfo"
+  },
+  "미만성 갑상선 질환": {
+    "label": "Diffuse thyroid disease",
+    "tag": "diffuse_thyroid_disease"
+  },
+  "미만성 폐질환": {
+    "label": "Diffuse lung disease",
+    "tag": "diffuse_lung_disease"
+  },
+  "방광과 요도": {
+    "label": "Bladder and urethra",
+    "tag": "bladder_urethra"
+  },
+  "방사선 생물학": {
+    "label": "Radiation biology",
+    "tag": "radiation_biology"
+  },
+  "방사선 영상": {
+    "label": "Radiological imaging",
+    "tag": "radiological_imaging"
+  },
+  "방사선이 인체에 미치는 영향": {
+    "label": "Effects of radiation on the human body",
+    "tag": "radiation_effects_human"
+  },
+  "복강, 대망 및 복벽": {
+    "label": "Peritoneal cavity, omentum, and abdominal wall",
+    "tag": "peritoneal_omentum_abdominal"
+  },
+  "복강, 대망, 복벽": {
+    "label": "Peritoneal cavity, omentum, abdominal wall",
+    "tag": "peritoneal_omentum_abdominalwall"
+  },
+  "복부 기타": {
+    "label": "Other abdomen",
+    "tag": "other_abdomen"
+  },
+  "복부 영상의학": {
+    "label": "Abdominal radiology",
+    "tag": "abdominal_rad"
+  },
+  "복수": {
+    "label": "Ascites",
+    "tag": "ascites"
+  },
+  "부갑상선": {
+    "label": "Parathyroid gland",
+    "tag": "parathyroid"
+  },
+  "부비동": {
+    "label": "Paranasal sinus",
+    "tag": "paranasal_sinus"
+  },
+  "부비동 및 비강": {
+    "label": "Paranasal sinuses and nasal cavity",
+    "tag": "paranasal_sinuses_nasal"
+  },
+  "부신": {
+    "label": "Adrenal gland",
+    "tag": "adrenal_gland"
+  },
+  "부인과": {
+    "label": "Gynecology",
+    "tag": "gynecology"
+  },
+  "비강 및 부비동": {
+    "label": "Nasal cavity and paranasal sinuses",
+    "tag": "nasal_cavity_paranasal"
+  },
+  "비뇨기계": {
+    "label": "Urinary system",
+    "tag": "urinary_system"
+  },
+  "비뇨생식기": {
+    "label": "Urogenital system",
+    "tag": "urogenital"
+  },
+  "비뇨생식기계": {
+    "label": "Urogenital system",
+    "tag": "urogenital_system"
+  },
+  "비뇨생식기계 영상의학": {
+    "label": "Genitourinary radiology",
+    "tag": "gu_rad"
+  },
+  "비장": {
+    "label": "Spleen",
+    "tag": "spleen"
+  },
+  "비종양성 질환": {
+    "label": "Non-neoplastic disease",
+    "tag": "non_neoplastic_disease"
+  },
+  "뼈 및 관절계": {
+    "label": "Bones and joints",
+    "tag": "bones_joints"
+  },
+  "산과": {
+    "label": "Obstetrics",
+    "tag": "obstetrics"
+  },
+  "상기도 질환": {
+    "label": "Upper airway disease",
+    "tag": "upper_airway_disease"
+  },
+  "선천성 기형": {
+    "label": "Congenital anomaly",
+    "tag": "congenital_anomaly"
+  },
+  "선천성 기형 및 기타 질환": {
+    "label": "Congenital anomaly and other disease",
+    "tag": "congenital_anomaly_other"
+  },
+  "선천성 뇌 질환": {
+    "label": "Congenital brain disease",
+    "tag": "congenital_brain_disease"
+  },
+  "선천성 심장질환": {
+    "label": "Congenital heart disease",
+    "tag": "congenital_heart_disease"
+  },
+  "선천성 요로질환": {
+    "label": "Congenital urinary tract disease",
+    "tag": "congenital_urinary_disease"
+  },
+  "선천성 질환": {
+    "label": "Congenital disease",
+    "tag": "congenital_disease"
+  },
+  "선천적 질환": {
+    "label": "Congenital disease",
+    "tag": "congenital_disease"
+  },
+  "선천적인 이상": {
+    "label": "Congenital anomaly",
+    "tag": "congenital_anomaly"
+  },
+  "세부 목표": {
+    "label": "Specific objectives",
+    "tag": "specific_objectives"
+  },
+  "소아 영상의학": {
+    "label": "Pediatric radiology",
+    "tag": "ped_rad"
+  },
+  "소아핵의학": {
+    "label": "Pediatric nuclear medicine",
+    "tag": "ped_nuclear_med"
+  },
+  "소장": {
+    "label": "Small intestine",
+    "tag": "small_intestine"
+  },
+  "소화기계": {
+    "label": "Digestive system",
+    "tag": "digestive_system"
+  },
+  "소화성 궤양": {
+    "label": "Peptic ulcer",
+    "tag": "peptic_ulcer"
+  },
+  "수술 후 소견": {
+    "label": "Postoperative findings",
+    "tag": "postoperative_findings"
+  },
+  "슬관절": {
+    "label": "Knee joint",
+    "tag": "knee_joint"
+  },
+  "식도": {
+    "label": "Esophagus",
+    "tag": "esophagus"
+  },
+  "신경계": {
+    "label": "Nervous system",
+    "tag": "nervous_system"
+  },
+  "신생아 질환": {
+    "label": "Neonatal disease",
+    "tag": "neonatal_disease"
+  },
+  "신장과 요관": {
+    "label": "Kidney and ureter",
+    "tag": "kidney_ureter"
+  },
+  "신장의 생리학적 소견 및 조영제의 역동학적 소견": {
+    "label": "Physiological findings of the kidney and dynamic findings of contrast media",
+    "tag": "kidney_physiology_contrast_dynamics"
+  },
+  "심근 질환과 심장 종양": {
+    "label": "Myocardial disease and cardiac tumor",
+    "tag": "myocardial_disease_cardiac_tumor"
+  },
+  "심낭 질환": {
+    "label": "Pericardial disease",
+    "tag": "pericardial_disease"
+  },
+  "심장": {
+    "label": "Heart",
+    "tag": "heart"
+  },
+  "심장 혈관계 영상의학": {
+    "label": "Cardiovascular radiology",
+    "tag": "cv_rad"
+  },
+  "심장판막 질환": {
+    "label": "Heart valve disease",
+    "tag": "heart_valve_disease"
+  },
+  "심혈관계": {
+    "label": "Cardiovascular system",
+    "tag": "cv"
+  },
+  "악성 유방질환": {
+    "label": "Malignant breast disease",
+    "tag": "malignant_breast_disease"
+  },
+  "악성종양": {
+    "label": "Malignant tumor",
+    "tag": "malignant_tumor"
+  },
+  "안구 및 안와질환": {
+    "label": "Eye and orbital disease",
+    "tag": "eye_orbital_disease"
+  },
+  "안와": {
+    "label": "Orbit",
+    "tag": "orbit"
+  },
+  "안와 및 안구": {
+    "label": "Orbit and eye",
+    "tag": "orbit_eye"
+  },
+  "양성 유방질환": {
+    "label": "Benign breast disease",
+    "tag": "benign_breast_disease"
+  },
+  "양성종양": {
+    "label": "Benign tumor",
+    "tag": "benign_tumor"
+  },
+  "염증성 질환": {
+    "label": "Inflammatory disease",
+    "tag": "inflammatory_disease"
+  },
+  "영상 기법 및 기술": {
+    "label": "Imaging techniques and technology",
+    "tag": "imaging_techniques_tech"
+  },
+  "영상 기법 및 시술": {
+    "label": "Imaging techniques and procedures",
+    "tag": "imaging_techniques_procedures"
+  },
+  "영상 및 시술 기법": {
+    "label": "Imaging and procedural techniques",
+    "tag": "imaging_procedural_techniques"
+  },
+  "영상 및 시술기법": {
+    "label": "Imaging and procedural techniques",
+    "tag": "imaging_procedural_techniques"
+  },
+  "영상 진단": {
+    "label": "Diagnostic imaging",
+    "tag": "diagnostic_imaging"
+  },
+  "영상 해부학": {
+    "label": "Radiologic anatomy",
+    "tag": "radiologic_anatomy"
+  },
+  "영상유도하 시술": {
+    "label": "Image-guided procedure",
+    "tag": "image_guided_procedure"
+  },
+  "완관절 및 수부": {
+    "label": "Wrist joint and hand",
+    "tag": "wrist_hand"
+  },
+  "외상": {
+    "label": "Trauma",
+    "tag": "trauma"
+  },
+  "외상 및 수술 후 변화": {
+    "label": "Trauma and postoperative changes",
+    "tag": "trauma_postoperative_changes"
+  },
+  "외상성 질환": {
+    "label": "Traumatic disease",
+    "tag": "traumatic_disease"
+  },
+  "위 및 십이지장": {
+    "label": "Stomach and duodenum",
+    "tag": "stomach_duodenum"
+  },
+  "위와 십이지장": {
+    "label": "Stomach and duodenum",
+    "tag": "stomach_duodenum"
+  },
+  "위장관": {
+    "label": "Gastrointestinal tract",
+    "tag": "gi_tract"
+  },
+  "위장관계": {
+    "label": "Gastrointestinal tract",
+    "tag": "gi_tract"
+  },
+  "유방 MRI": {
+    "label": "Breast MRI",
+    "tag": "breast_mri"
+  },
+  "유방 영상의학": {
+    "label": "Breast radiology",
+    "tag": "breast_rad"
+  },
+  "유방암 screening": {
+    "label": "Breast cancer screening",
+    "tag": "breast_cancer_screening"
+  },
+  "유방초음파검사": {
+    "label": "Breast ultrasound",
+    "tag": "breast_ultrasound"
+  },
+  "유방촬영": {
+    "label": "Mammography",
+    "tag": "mammography"
+  },
+  "유방촬영술": {
+    "label": "Mammography",
+    "tag": "mammography"
+  },
+  "유형분석": {
+    "label": "Pattern analysis",
+    "tag": "pattern_analysis"
+  },
+  "의료방사선 방어(medical radiation protection)": {
+    "label": "Medical radiation protection",
+    "tag": "medical_radiation_protection"
+  },
+  "의료영상의 안전성": {
+    "label": "Safety of medical imaging",
+    "tag": "safety_medical_imaging"
+  },
+  "의료영상의 품질관리 개요": {
+    "label": "Overview of quality control in medical imaging",
+    "tag": "qc_overview_medical_imaging"
+  },
+  "의사 결정": {
+    "label": "Decision making",
+    "tag": "decision_making"
+  },
+  "의사 소통": {
+    "label": "Communication",
+    "tag": "communication"
+  },
+  "인공물 및 환자 안전": {
+    "label": "Artifacts and patient safety",
+    "tag": "artifacts_patient_safety"
+  },
+  "인두 및 식도": {
+    "label": "Pharynx and esophagus",
+    "tag": "pharynx_esophagus"
+  },
+  "인터벤션 영상의학": {
+    "label": "Interventional radiology",
+    "tag": "ir"
+  },
+  "일반촬영": {
+    "label": "General radiography",
+    "tag": "general_radiography"
+  },
+  "임신": {
+    "label": "Pregnancy",
+    "tag": "pregnancy"
+  },
+  "자궁": {
+    "label": "Uterus",
+    "tag": "uterus"
+  },
+  "자기공명영상(magnetic resonance imaging, MRI)": {
+    "label": "Magnetic resonance imaging",
+    "tag": "mri"
+  },
+  "전산화단층촬영(computed tomography, CT)": {
+    "label": "Computed tomography",
+    "tag": "ct"
+  },
+  "정당화(justification)": {
+    "label": "Justification",
+    "tag": "justification"
+  },
+  "정맥": {
+    "label": "Vein",
+    "tag": "vein"
+  },
+  "정상 해부학 및 변이": {
+    "label": "Normal anatomy and variations",
+    "tag": "normal_anatomy_variations"
+  },
+  "조영제": {
+    "label": "Contrast agent",
+    "tag": "contrast_agent"
+  },
+  "족관절 및 족부": {
+    "label": "Ankle joint and foot",
+    "tag": "ankle_foot"
+  },
+  "종격동": {
+    "label": "Mediastinum",
+    "tag": "mediastinum"
+  },
+  "종격동 및 흉벽 질환": {
+    "label": "Mediastinal and chest wall disease",
+    "tag": "mediastinal_chestwall_disease"
+  },
+  "종양": {
+    "label": "Tumor",
+    "tag": "tumor"
+  },
+  "종양(PET & non-PET)": {
+    "label": "Tumor (PET & non-PET)",
+    "tag": "tumor_pet_nonpet"
+  },
+  "종양성 질환": {
+    "label": "Neoplastic disease",
+    "tag": "neoplastic_disease"
+  },
+  "주관절": {
+    "label": "Elbow joint",
+    "tag": "elbow_joint"
+  },
+  "직업성 폐질환": {
+    "label": "Occupational lung disease",
+    "tag": "occupational_lung_disease"
+  },
+  "척추": {
+    "label": "Spine",
+    "tag": "spine"
+  },
+  "척추 및 척수": {
+    "label": "Spine and spinal cord",
+    "tag": "spine_spinal_cord"
+  },
+  "척추 및 척수 질환": {
+    "label": "Spine and spinal cord disease",
+    "tag": "spine_spinalcord_disease"
+  },
+  "초음파검사": {
+    "label": "Ultrasonography",
+    "tag": "ultrasonography"
+  },
+  "최적화(optimization)": {
+    "label": "Optimization",
+    "tag": "optimization"
+  },
+  "충수돌기 질환": {
+    "label": "Appendiceal disease",
+    "tag": "appendiceal_disease"
+  },
+  "췌장": {
+    "label": "Pancreas",
+    "tag": "pancreas"
+  },
+  "췌장과 비장": {
+    "label": "Pancreas and spleen",
+    "tag": "pancreas_spleen"
+  },
+  "측두골 및 안면골": {
+    "label": "Temporal bone and facial bone",
+    "tag": "temporal_facial_bone"
+  },
+  "측두골(측두하악관절) 및 안면골": {
+    "label": "Temporal bone (temporomandibular joint) and facial bone",
+    "tag": "temporal_tmj_facial_bone"
+  },
+  "침샘": {
+    "label": "Salivary gland",
+    "tag": "salivary_gland"
+  },
+  "퇴행성 질환": {
+    "label": "Degenerative disease",
+    "tag": "degenerative_disease"
+  },
+  "투시": {
+    "label": "Fluoroscopy",
+    "tag": "fluoroscopy"
+  },
+  "특수영상기법": {
+    "label": "Special imaging techniques",
+    "tag": "special_imaging_techniques"
+  },
+  "펄스파형": {
+    "label": "Pulse sequence",
+    "tag": "pulse_sequence"
+  },
+  "폐 및 기관지": {
+    "label": "Lung and bronchus",
+    "tag": "lung_bronchus"
+  },
+  "폐 질환": {
+    "label": "Lung disease",
+    "tag": "lung_disease"
+  },
+  "폐동맥": {
+    "label": "Pulmonary artery",
+    "tag": "pulmonary_artery"
+  },
+  "폐부종 및 고혈압": {
+    "label": "Pulmonary edema and hypertension",
+    "tag": "pulmonary_edema_hypertension"
+  },
+  "폐색전증": {
+    "label": "Pulmonary embolism",
+    "tag": "pulmonary_embolism"
+  },
+  "폐종양": {
+    "label": "Lung tumor",
+    "tag": "lung_tumor"
+  },
+  "품질관리": {
+    "label": "Quality control",
+    "tag": "quality_control"
+  },
+  "핵의학": {
+    "label": "Nuclear medicine",
+    "tag": "nuclear_medicine"
+  },
+  "핵의학 물리": {
+    "label": "Nuclear medicine physics",
+    "tag": "nuclear_med_physics"
+  },
+  "허혈성 및 혈관성 뇌질환": {
+    "label": "Ischemic and vascular brain disease",
+    "tag": "ischemic_vascular_brain"
+  },
+  "허혈성 심장질환": {
+    "label": "Ischemic heart disease",
+    "tag": "ischemic_heart_disease"
+  },
+  "허혈성 질환 및 기타 혈관 질환": {
+    "label": "Ischemic disease and other vascular disease",
+    "tag": "ischemic_other_vascular"
+  },
+  "혈관 기형 및 출혈성 질환": {
+    "label": "Vascular malformation and hemorrhagic disease",
+    "tag": "vascular_malformation_hemorrhagic"
+  },
+  "혈관 질환": {
+    "label": "Vascular disease",
+    "tag": "vascular_disease"
+  },
+  "혈관질환": {
+    "label": "Vascular disease",
+    "tag": "vascular_disease"
+  },
+  "혈액 및 골수계": {
+    "label": "Blood and bone marrow system",
+    "tag": "blood_bone_marrow"
+  },
+  "호흡기계": {
+    "label": "Respiratory system",
+    "tag": "respiratory_system"
+  },
+  "환자 및 종사자 선량 저감화 방법": {
+    "label": "Methods for reducing patient and worker dose",
+    "tag": "reducing_patient_worker_dose"
+  },
+  "환자 진료": {
+    "label": "Patient care",
+    "tag": "patient_care"
+  },
+  "횡격막 및 흉벽": {
+    "label": "Diaphragm and chest wall",
+    "tag": "diaphragm_chest_wall"
+  },
+  "후복막강": {
+    "label": "Retroperitoneum",
+    "tag": "retroperitoneum"
+  },
+  "흉막": {
+    "label": "Pleura",
+    "tag": "pleura"
+  },
+  "흉부": {
+    "label": "Chest",
+    "tag": "chest"
+  },
+  "흉부 병변의 유형 분석": {
+    "label": "Pattern analysis of chest lesions",
+    "tag": "pattern_analysis_chest_lesions"
+  },
+  "흉부 영상의학": {
+    "label": "Thoracic radiology",
+    "tag": "thoracic_rad"
+  }
+}
