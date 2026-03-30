@@ -1,0 +1,23 @@
+{
+  "S1_SYSTEM": "S1_SYSTEM__v14.md",
+  "S1_USER_GROUP": "S1_USER_GROUP__v11.md",
+  "S2_SYSTEM": "S2_SYSTEM__v11.md",
+  "S2_USER_ENTITY": "S2_USER_ENTITY__v11.md",
+  "S4_CONCEPT_SYSTEM": "S4_CONCEPT_SYSTEM__v3.md",
+  "S4_CONCEPT_USER__General": "S4_CONCEPT_USER__General__v3.md",
+  "S4_CONCEPT_USER__Pathology_Pattern": "S4_CONCEPT_USER__Pathology_Pattern__v3.md",
+  "S4_CONCEPT_USER__Pattern_Collection": "S4_CONCEPT_USER__Pattern_Collection__v3.md",
+  "S4_CONCEPT_USER__Physiology_Process": "S4_CONCEPT_USER__Physiology_Process__v3.md",
+  "S4_CONCEPT_USER__Anatomy_Map": "S4_CONCEPT_USER__Anatomy_Map__v3.md",
+  "S4_CONCEPT_USER__Equipment": "S4_CONCEPT_USER__Equipment__v3.md",
+  "S4_CONCEPT_USER__QC": "S4_CONCEPT_USER__QC__v3.md",
+  "S4_EXAM_SYSTEM": "S4_EXAM_SYSTEM__v8_DIAGRAM_4x5_2K.md",
+  "S4_EXAM_USER": "S4_EXAM_USER__v8_DIAGRAM_4x5_2K.md",
+  "S4_EXAM_SYSTEM__v8_REALISTIC": "S4_EXAM_SYSTEM__v8_REALISTIC_4x5_2K.md",
+  "S4_EXAM_USER__v8_REALISTIC": "S4_EXAM_USER__v8_REALISTIC_4x5_2K.md",
+  "S5_SYSTEM": "S5_SYSTEM__v2.md",
+  "S5_USER_TABLE": "S5_USER_TABLE__v2.md",
+  "S5_USER_CARD": "S5_USER_CARD__v2.md",
+  "S5_USER_CARD_IMAGE": "S5_USER_CARD_IMAGE__v1.md",
+  "S5_USER_TABLE_VISUAL": "S5_USER_TABLE_VISUAL__v1.md"
+}

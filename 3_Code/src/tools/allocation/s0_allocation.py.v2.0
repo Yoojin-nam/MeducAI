@@ -1,0 +1,460 @@
+"""
+S0 Allocation Module
+-------------------
+Canonical implementation for S0 allocation artifacts.
+
+v2.0 policy (current):
+- Fixed 12 cards per set (group × arm)
+- Entity spread allocation (hard/soft)
+- Allocation artifact is mandatory and persisted to disk
+
+Backward compatibility:
+- Can validate/read v1.0 artifacts (representative entity only)
+
+Applies to: S0 QA / Model Comparison phase only
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+
+# =========================
+# Constants (S0 Canonical)
+# =========================
+
+S0_SET_TARGET_CARDS = 12
+
+# Current canonical
+S0_ALLOCATION_VERSION_V2 = "S0-Allocation-v2.0"
+
+# Backward compatibility (read-only)
+S0_ALLOCATION_VERSION_V1 = "S0-Allocation-v1.0"
+
+# Spread modes
+SPREAD_MODE_HARD = "hard"
+SPREAD_MODE_SOFT = "soft"
+ALLOWED_SPREAD_MODES = {SPREAD_MODE_HARD, SPREAD_MODE_SOFT}
+
+
+# =========================
+# Errors
+# =========================
+
+class AllocationError(RuntimeError):
+    """Raised when allocation invariants are violated."""
+    pass
+
+
+# =========================
+# Data Models
+# =========================
+
+@dataclass(frozen=True)
+class S0AllocationInputs:
+    run_tag: str
+    group_id: str
+    arm: str
+    entities_from_s1: List[str]  # ordered list from S1 output
+
+
+@dataclass(frozen=True)
+class S2ExecutionTarget:
+    entity_name: str
+    cards_for_entity_exact: int
+
+
+# =========================
+# Utilities
+# =========================
+
+def _atomic_write_json(path: Path, obj: Dict[str, Any]) -> None:
+    """
+    Atomically write JSON to disk (POSIX-safe).
+    Prevents partial files on crash.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    tmp.replace(path)
+
+
+def get_s0_allocation_path(base_dir: Path, run_tag: str, group_id: str, arm: str) -> Path:
+    """
+    Canonical allocation artifact path for S0.
+    """
+    return (
+        base_dir
+        / "2_Data/metadata/generated"
+        / run_tag
+        / "allocation"
+        / f"allocation_s0__group_{group_id}__arm_{arm}.json"
+    )
+
+
+def _sanitize_entities_from_s1(raw: List[str]) -> List[str]:
+    """Sanitize entity list while preserving order and removing empties."""
+    if not isinstance(raw, list):
+        return []
+    out: List[str] = []
+    for e in raw:
+        if isinstance(e, str):
+            s = e.strip()
+            if s:
+                out.append(s)
+    return out
+
+
+# =========================
+# Allocation builders (v2)
+# =========================
+
+def _pick_entities_deterministic_prefix(entities: List[str], k: int) -> List[str]:
+    """Deterministic selection: first k entities (preserve S1 order)."""
+    return entities[:k]
+
+
+def _alloc_even_split_over_entities(entities: List[str], total_cards: int) -> List[Dict[str, Any]]:
+    """
+    Even split across ALL provided entities (E < 6 fallback, or generic use).
+    Deterministic: allocates base, then remainder to earliest entities.
+    """
+    E = len(entities)
+    if E <= 0:
+        raise AllocationError("cannot allocate with empty entity list")
+
+    base = total_cards // E
+    rem = total_cards % E
+    allocs: List[Dict[str, Any]] = []
+    for i, e in enumerate(entities):
+        n = base + (1 if i < rem else 0)
+        if n <= 0:
+            raise AllocationError("invalid even split produced non-positive allocation")
+        allocs.append({"entity_name": e, "cards_for_entity_exact": n})
+    return allocs
+
+
+def _alloc_spread_hard(entities: List[str]) -> List[Dict[str, Any]]:
+    """
+    Hard spread policy (binding when possible):
+      - If E >= 6: use exactly 6 entities × 2 cards each = 12
+      - If E < 6: use all entities and distribute evenly to sum 12
+    """
+    E = len(entities)
+    if E <= 0:
+        raise AllocationError("S1 entity_list is empty or invalid")
+
+    if E >= 6:
+        picked = _pick_entities_deterministic_prefix(entities, 6)
+        return [{"entity_name": e, "cards_for_entity_exact": 2} for e in picked]
+
+    # E < 6: distribute over all entities (keeps distinct coverage maximal)
+    return _alloc_even_split_over_entities(entities, S0_SET_TARGET_CARDS)
+
+
+def _alloc_spread_soft(entities: List[str]) -> List[Dict[str, Any]]:
+    """
+    Soft spread policy (best-effort):
+      - target distinct entities d = min(6, E)
+      - seed 1 card each for d entities
+      - distribute remaining cards round-robin over those d entities
+    """
+    E = len(entities)
+    if E <= 0:
+        raise AllocationError("S1 entity_list is empty or invalid")
+
+    d = min(6, E)
+    picked = _pick_entities_deterministic_prefix(entities, d)
+
+    counts = [1] * d
+    remaining = S0_SET_TARGET_CARDS - d
+    idx = 0
+    while remaining > 0:
+        counts[idx] += 1
+        remaining -= 1
+        idx = (idx + 1) % d
+
+    allocs: List[Dict[str, Any]] = []
+    for e, c in zip(picked, counts):
+        allocs.append({"entity_name": e, "cards_for_entity_exact": int(c)})
+    return allocs
+
+
+def _spread_metrics_from_allocs(allocs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    max_cards = max(int(r["cards_for_entity_exact"]) for r in allocs) if allocs else None
+    distinct = len(allocs)
+    return {
+        "distinct_entities_used": distinct,
+        "max_cards_per_entity": max_cards,
+        # heuristic flag for analysis / filtering
+        "spread_flag_low": bool(distinct < 4),
+    }
+
+
+# =========================
+# Validation (Fail-Fast)
+# =========================
+
+def _validate_s0_allocation_artifact_v1(artifact: Dict[str, Any]) -> None:
+    """
+    Validate S0 allocation artifact against v1.0 invariants.
+    v1.0: representative entity only (exactly 1 allocation, exactly 12 cards).
+    """
+    if artifact.get("allocation_version") != S0_ALLOCATION_VERSION_V1:
+        raise AllocationError("allocation_version mismatch (expected v1.0)")
+
+    if artifact.get("mode") != "S0":
+        raise AllocationError("mode must be 'S0'")
+
+    if artifact.get("set_target_cards") != S0_SET_TARGET_CARDS:
+        raise AllocationError(f"set_target_cards must be {S0_SET_TARGET_CARDS}")
+
+    entities_from_s1 = artifact.get("entities_from_s1")
+    if not isinstance(entities_from_s1, list) or not entities_from_s1:
+        raise AllocationError("entities_from_s1 must be a non-empty list")
+
+    selected_entity = artifact.get("selected_entity")
+    if not isinstance(selected_entity, str) or not selected_entity.strip():
+        raise AllocationError("selected_entity must be a non-empty string")
+
+    if selected_entity not in entities_from_s1:
+        raise AllocationError("selected_entity must be contained in entities_from_s1")
+
+    allocs = artifact.get("entity_allocations")
+    if not isinstance(allocs, list) or len(allocs) != 1:
+        raise AllocationError("entity_allocations must contain exactly 1 entry in S0 (v1.0)")
+
+    row = allocs[0]
+    if row.get("entity_name") != selected_entity:
+        raise AllocationError("entity_allocations[0].entity_name must equal selected_entity")
+
+    n = row.get("cards_for_entity_exact")
+    if not isinstance(n, int) or n <= 0:
+        raise AllocationError("cards_for_entity_exact must be int > 0")
+
+    if n != S0_SET_TARGET_CARDS:
+        raise AllocationError(f"cards_for_entity_exact must equal {S0_SET_TARGET_CARDS} in S0 (v1.0)")
+
+    checksum = artifact.get("allocation_checksum") or {}
+    if checksum.get("sum_cards") != S0_SET_TARGET_CARDS:
+        raise AllocationError("allocation_checksum.sum_cards mismatch")
+    if checksum.get("entity_count_used") != 1:
+        raise AllocationError("allocation_checksum.entity_count_used must be 1")
+
+
+def _validate_s0_allocation_artifact_v2(artifact: Dict[str, Any]) -> None:
+    """
+    Validate S0 allocation artifact against v2.0 invariants.
+    v2.0: entity spread allocation (1..N allocations), sum must equal 12.
+    """
+    if artifact.get("allocation_version") != S0_ALLOCATION_VERSION_V2:
+        raise AllocationError("allocation_version mismatch (expected v2.0)")
+
+    if artifact.get("mode") != "S0":
+        raise AllocationError("mode must be 'S0'")
+
+    if artifact.get("set_target_cards") != S0_SET_TARGET_CARDS:
+        raise AllocationError(f"set_target_cards must be {S0_SET_TARGET_CARDS}")
+
+    entities_from_s1 = artifact.get("entities_from_s1")
+    if not isinstance(entities_from_s1, list) or not entities_from_s1:
+        raise AllocationError("entities_from_s1 must be a non-empty list")
+
+    # v2 fields
+    policy = artifact.get("entity_selection_policy") or {}
+    if not isinstance(policy, dict):
+        raise AllocationError("entity_selection_policy must be an object")
+
+    spread_mode = policy.get("spread_mode")
+    if spread_mode not in ALLOWED_SPREAD_MODES:
+        raise AllocationError(f"entity_selection_policy.spread_mode must be one of {sorted(ALLOWED_SPREAD_MODES)}")
+
+    allocs = artifact.get("entity_allocations")
+    if not isinstance(allocs, list) or len(allocs) < 1:
+        raise AllocationError("entity_allocations must contain at least 1 entry in S0 (v2.0)")
+
+    seen = set()
+    total = 0
+    for row in allocs:
+        if not isinstance(row, dict):
+            raise AllocationError("each entity_allocations row must be an object")
+        name = row.get("entity_name")
+        n = row.get("cards_for_entity_exact")
+
+        if not isinstance(name, str) or not name.strip():
+            raise AllocationError("entity_name must be a non-empty string")
+        if name not in entities_from_s1:
+            raise AllocationError("entity_name must be contained in entities_from_s1")
+        if name in seen:
+            raise AllocationError("duplicate entity_name in entity_allocations")
+        seen.add(name)
+
+        if not isinstance(n, int) or n <= 0:
+            raise AllocationError("cards_for_entity_exact must be int > 0")
+        total += int(n)
+
+    if total != S0_SET_TARGET_CARDS:
+        raise AllocationError(f"sum(cards_for_entity_exact) must equal {S0_SET_TARGET_CARDS} in S0 (v2.0)")
+
+    checksum = artifact.get("allocation_checksum") or {}
+    if checksum.get("sum_cards") != S0_SET_TARGET_CARDS:
+        raise AllocationError("allocation_checksum.sum_cards mismatch")
+    if checksum.get("entity_count_used") != len(allocs):
+        raise AllocationError("allocation_checksum.entity_count_used mismatch")
+
+    # Optional audit helpers - if present, validate basic types
+    if "spread_metrics" in artifact and not isinstance(artifact["spread_metrics"], dict):
+        raise AllocationError("spread_metrics must be an object if present")
+
+
+def validate_s0_allocation_artifact(artifact: Dict[str, Any]) -> None:
+    """
+    Version-dispatch validator. Fails fast on unknown versions.
+    """
+    v = artifact.get("allocation_version")
+    if v == S0_ALLOCATION_VERSION_V2:
+        _validate_s0_allocation_artifact_v2(artifact)
+        return
+    if v == S0_ALLOCATION_VERSION_V1:
+        _validate_s0_allocation_artifact_v1(artifact)
+        return
+    raise AllocationError(f"unknown allocation_version: {v}")
+
+
+# =========================
+# Builders / Loaders
+# =========================
+
+def build_s0_allocation_artifact(
+    base_dir: Path,
+    inp: S0AllocationInputs,
+    spread_mode: str = SPREAD_MODE_HARD,
+) -> Path:
+    """
+    Build and persist S0 allocation artifact (v2.0).
+
+    spread_mode:
+      - "hard": E>=6 => 6×2; else even split across all entities
+      - "soft": d=min(6,E) seeded 1 each + round-robin remainder
+    """
+    if spread_mode not in ALLOWED_SPREAD_MODES:
+        raise AllocationError(f"invalid spread_mode: {spread_mode}")
+
+    entities = _sanitize_entities_from_s1(inp.entities_from_s1)
+    if not entities:
+        raise AllocationError("S1 entity_list is empty or invalid")
+
+    if spread_mode == SPREAD_MODE_HARD:
+        allocs = _alloc_spread_hard(entities)
+        rule = "hard_spread: if E>=6 use 6x2 else even_split_over_all_entities"
+    else:
+        allocs = _alloc_spread_soft(entities)
+        rule = "soft_spread: d=min(6,E), seed 1 each then round_robin"
+
+    # compute checksum + metrics
+    sum_cards = sum(int(r["cards_for_entity_exact"]) for r in allocs)
+    if sum_cards != S0_SET_TARGET_CARDS:
+        raise AllocationError("internal error: allocation does not sum to set target")
+
+    metrics = _spread_metrics_from_allocs(allocs)
+
+    artifact: Dict[str, Any] = {
+        "allocation_version": S0_ALLOCATION_VERSION_V2,
+        "run_tag": inp.run_tag,
+        "mode": "S0",
+        "group_id": inp.group_id,
+        "arm": inp.arm,
+
+        "set_target_cards": S0_SET_TARGET_CARDS,
+
+        "entity_selection_policy": {
+            "type": "spread",
+            "spread_mode": spread_mode,
+            "rule": rule,
+            "selection": "deterministic_prefix_from_S1_order",
+        },
+
+        "entities_from_s1": entities,
+
+        # v2: multi-entity allocations
+        "entity_allocations": allocs,
+
+        "allocation_checksum": {
+            "sum_cards": S0_SET_TARGET_CARDS,
+            "entity_count_used": len(allocs),
+        },
+
+        # analysis helpers (non-binding)
+        "spread_metrics": metrics,
+
+        # audit helpers
+        "created_ts_unix": int(time.time()),
+        "created_by": os.getenv("USER") or None,
+    }
+
+    # pre-write validation
+    validate_s0_allocation_artifact(artifact)
+
+    out_path = get_s0_allocation_path(
+        base_dir=base_dir,
+        run_tag=inp.run_tag,
+        group_id=inp.group_id,
+        arm=inp.arm,
+    )
+
+    _atomic_write_json(out_path, artifact)
+
+    # post-write validation (defensive)
+    with out_path.open("r", encoding="utf-8") as f:
+        reloaded = json.load(f)
+    validate_s0_allocation_artifact(reloaded)
+
+    return out_path
+
+
+def require_valid_s0_allocation_artifact(path: Path) -> Dict[str, Any]:
+    """
+    Guard for S2 execution.
+    Ensures allocation artifact exists, is readable, and valid.
+    """
+    if not path.exists():
+        raise AllocationError(f"S0 allocation artifact missing: {path}")
+    if path.stat().st_size <= 0:
+        raise AllocationError(f"S0 allocation artifact is empty (0B): {path}")
+
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            obj = json.load(f)
+    except Exception as e:
+        raise AllocationError(f"S0 allocation artifact invalid JSON: {path}") from e
+
+    validate_s0_allocation_artifact(obj)
+    return obj
+
+
+def s0_artifact_to_s2_targets(artifact: Dict[str, Any]) -> Tuple[S2ExecutionTarget, ...]:
+    """
+    Convert S0 allocation artifact into S2 execution targets.
+
+    v2.0: returns 1..N targets (entity spread)
+    v1.0: returns exactly 1 target (representative entity only)
+    """
+    validate_s0_allocation_artifact(artifact)
+
+    allocs = artifact["entity_allocations"]
+    targets: List[S2ExecutionTarget] = []
+    for row in allocs:
+        targets.append(
+            S2ExecutionTarget(
+                entity_name=row["entity_name"],
+                cards_for_entity_exact=int(row["cards_for_entity_exact"]),
+            )
+        )
+    return tuple(targets)

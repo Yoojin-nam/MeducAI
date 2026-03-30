@@ -43,7 +43,7 @@
 
 **전문의 (9명):**
 1. rev_010: [Study Coordinator] (삼성창원병원) ⭐ 재분류 완료
-2. rev_011: 윤순호 (National Jewish Health, 흉부영상)
+2. rev_011: Reviewer_14 (National Jewish Health, 흉부영상)
 3. rev_012: Reviewer_09 (서울대학교, 흉부영상)
 4. rev_013: 이로운 (인하대, 근골격영상)
 5. rev_014: Reviewer_04 (삼성창원병원, 근골격영상)

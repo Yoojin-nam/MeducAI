@@ -1,0 +1,46 @@
+{
+    "version": 1,
+    "description": "Overrides for MCQ back bilingual gloss cleanup: (Korean, English) -> replacement string.",
+    "overrides": [
+        {
+            "ko": "하베뉼라",
+            "en": "Habenula",
+            "replace": "Habenula"
+        },
+        {
+            "ko": "앞쪽",
+            "en": "Anterior",
+            "replace": "앞쪽"
+        },
+        {
+            "ko": "누출",
+            "en": "Leakage",
+            "replace": "누출"
+        },
+        {
+            "ko": "조영술",
+            "en": "UGI",
+            "replace": "UGI"
+        },
+        {
+            "ko": "긴장",
+            "en": "Tension",
+            "replace": "tension"
+        },
+        {
+            "ko": "반응성 저혈당",
+            "en": "Reactive hypoglycemia",
+            "replace": "Reactive hypoglycemia"
+        }
+    ],
+    "phrase_overrides": [
+        {
+            "src": "후기 덤핑",
+            "dst": "late dumping"
+        },
+        {
+            "src": "고삼투압 음식물",
+            "dst": "Hyperosmolar food"
+        }
+    ]
+}

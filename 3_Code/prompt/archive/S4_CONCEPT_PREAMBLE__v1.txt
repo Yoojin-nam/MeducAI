@@ -1,0 +1,2 @@
+You are generating ONE educational concept diagram (not a clinical PACS image). Short labels and axis titles are allowed. No patient info, no watermark, no brand logos, no long paragraphs. Single panel only.
+

@@ -1,0 +1,73 @@
+# ==============================
+# MeducAI – Core Runtime
+# ==============================
+#
+# NOTE: This file is synchronized with ../requirements.txt (project root)
+# Both files should be kept in sync. Use this file for 3_Code subdirectory installation.
+#
+
+# Python version
+# Python >=3.10,<3.13 권장
+
+# ------------------------------
+# Standard data handling
+# ------------------------------
+pandas==2.2.3
+numpy==1.26.4
+
+# ------------------------------
+# JSON / schema / validation
+# ------------------------------
+pydantic==2.10.3
+jsonschema==4.23.0
+
+# ------------------------------
+# CLI / logging / utilities
+# ------------------------------
+tqdm==4.67.1
+python-dotenv==1.0.1
+
+# ------------------------------
+# Date / time handling
+# ------------------------------
+python-dateutil==2.9.0.post0
+
+# ------------------------------
+# HTTP / API (LLM provider calls)
+# ------------------------------
+requests==2.32.3
+
+# ------------------------------
+# Optional: OpenAI / Gemini SDK / Anthropic
+# (arm별 실험 시 선택적 사용)
+# ------------------------------
+openai==2.13.0
+google-genai==1.56.0
+anthropic>=0.34.0
+#google-generativeai==0.8.4  # Deprecated: use google-genai instead
+
+# ------------------------------
+# File system / path safety
+# ------------------------------
+platformdirs==4.3.6
+
+# ------------------------------
+# Dev / verification utilities
+# ------------------------------
+rich==13.9.4
+
+# ------------------------------
+# PDF generation (for QA packets)
+# ------------------------------
+reportlab==4.2.5
+Pillow==10.4.0
+
+# ------------------------------
+# PDF parsing (curriculum rebuild v2)
+# ------------------------------
+pdfplumber==0.11.4
+
+# ------------------------------
+# Anki deck export
+# ------------------------------
+genanki==0.13.0

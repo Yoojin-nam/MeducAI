@@ -6,7 +6,7 @@
 - **새롭게 추가가 필요한 문항**
 을 체계적으로 구분·정리한 매핑 문서이다.
 
-본 정리는 **IRB amendment 최소화**, **변화량 분석 가능성 극대화**, **이태희 교수 자문(accuracy·efficiency·quality 강화)**를 동시에 만족하는 것을 목표로 한다.
+본 정리는 **IRB amendment 최소화**, **변화량 분석 가능성 극대화**, **Reviewer_09 교수 자문(accuracy·efficiency·quality 강화)**를 동시에 만족하는 것을 목표로 한다.
 
 ---
 

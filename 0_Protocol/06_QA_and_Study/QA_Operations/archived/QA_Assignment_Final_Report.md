@@ -23,7 +23,7 @@
 
 **Attendings (전문의): 9명 (모두 균등 배정)**
 - rev_010: 심용식 (삼성서울병원, 신경두경부영상) - 12 sets ✅
-- rev_011: 윤순호 (National Jewish Health, 흉부영상) - 12 sets ✅
+- rev_011: Reviewer_14 (National Jewish Health, 흉부영상) - 12 sets ✅
 - rev_012: Reviewer_09 (서울대학교, 흉부영상) - 12 sets ✅
 - rev_013: Reviewer_10 (삼성창원병원, 인터벤션) - 12 sets ✅
 - rev_014: Reviewer_04 (삼성창원병원, 근골격영상) - 12 sets ✅

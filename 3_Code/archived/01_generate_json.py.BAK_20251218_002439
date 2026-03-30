@@ -1,0 +1,1571 @@
+from __future__ import annotations
+
+"""
+MeducAI Step01 — 01_generate_json.py (Refactor-ready, Prompt externalized)
+
+- Prompts are loaded from 3_Code/prompt via 3_Code/src/prompt_bundle.py
+- RUN_TAG-centric output:
+  2_Data/metadata/generated/<run_tag>/output_<provider>_<run_tag>__arm<ARM>.jsonl
+
+Hard-fail rules (Pipeline-critical):
+- curriculum_content.table_infographic.prompt_en must be non-empty
+- curriculum_content.entities must be a list
+- Step01 output is strictly TEXT-only (image/importance fields are forbidden)
+
+P0 Freeze Invariant (Important):
+- provider/model must be resolved ONLY from ARM_CONFIGS (+ MODEL_CONFIG fallback).
+- Step01 MUST NOT read global model overrides from .env such as TEXT_MODEL_STAGE1/2.
+
+S0 Allocation v2.0:
+- In S0 mode, entity spread allocation is created/validated and used to generate
+  multi-entity S2 targets with exact-N per entity.
+"""
+
+import argparse
+import json
+import os
+import re
+import time
+import random
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import pandas as pd
+from dotenv import load_dotenv
+from tqdm import tqdm
+
+# --- Ensure local imports (3_Code/src) work even without PYTHONPATH ---
+import sys as _sys
+_THIS_DIR = Path(__file__).resolve().parent
+_sys.path.insert(0, str(_THIS_DIR))
+
+from prompt_bundle import load_prompt_bundle  # noqa: E402
+
+# S0 Allocation (v2.0)
+from allocation.s0_allocation import (  # noqa: E402
+    S0AllocationInputs,
+    build_s0_allocation_artifact,
+    require_valid_s0_allocation_artifact,
+    s0_artifact_to_s2_targets,
+)
+
+# -------------------------
+# Prompt rendering safety
+# -------------------------
+def safe_prompt_format(template: str, **kwargs) -> str:
+    """Safely format prompt templates that may contain JSON examples with braces.
+
+    Strategy:
+    1) Escape ALL braces in the template so JSON examples remain literal.
+    2) Un-escape only the placeholders we intend to substitute (keys in kwargs).
+    3) Apply str.format().
+
+    This prevents KeyError caused by JSON like { "id": ... } inside prompt templates.
+    """
+    if template is None:
+        return ""
+    t = template.replace("{", "{{").replace("}", "}}")
+    for k in kwargs.keys():
+        t = t.replace("{{" + k + "}}", "{" + k + "}")
+    try:
+        return t.format(**kwargs)
+    except KeyError as e:
+        raise KeyError(
+            f"Prompt template contains an unrecognized placeholder: {e}. "
+            f"Allowed keys={sorted(kwargs.keys())}"
+        ) from e
+
+
+# -------------------------
+# Paths & ENV
+# -------------------------
+def resolve_base_dir(base_dir: str) -> Path:
+    return Path(base_dir).resolve()
+
+
+def load_env(base_dir: Path) -> None:
+    env_path = base_dir / ".env"
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=True)
+
+
+def now_ts() -> int:
+    return int(time.time())
+
+
+def is_blank(x: Any) -> bool:
+    return x is None or (isinstance(x, str) and x.strip() == "")
+
+
+def safe_int(x: Any, default: int) -> int:
+    try:
+        return int(x)
+    except Exception:
+        return default
+
+
+def env_int(name: str, default: int) -> int:
+    return safe_int(os.getenv(name, str(default)), default)
+
+
+def env_float(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)))
+    except Exception:
+        return default
+
+
+# =========================
+# PREFLIGHT CHECKS (Fail-Fast)
+# =========================
+REQUIRED_PROMPT_KEYS = {
+    "S1_SYSTEM",
+    "S1_USER_GROUP",
+    "S2_SYSTEM",
+    "S2_USER_ENTITY",
+}
+
+REQUIRED_S1_PLACEHOLDERS_MIN = {
+    "group_path",
+    "group_id",
+    "objective_bullets",
+}
+
+REQUIRED_S2_PLACEHOLDERS_MIN_ANY = [
+    {"master_table"},
+    {"master_table_md"},
+]
+
+REQUIRED_S2_PLACEHOLDERS_MIN = {
+    "entity_name",
+    "cards_for_entity_exact",
+}
+
+ALLOWED_S1_PLACEHOLDERS = {
+    "specialty",
+    "anatomy",
+    "modality_or_type",
+    "category",
+    "group_path",
+    "group_key",
+    "group_id",
+    "objective_bullets",
+    "split_index",
+    "group_size",
+}
+
+ALLOWED_S2_PLACEHOLDERS = {
+    "master_table",
+    "entity_name",
+    "visual_type",
+    "cards_per_entity",          # 호환용
+    "cards_for_entity_exact",    # canonical
+    "card_type_quota_lines",
+    "master_table_md",
+    "entity_context",
+    "group_id",
+}
+
+def _pf_assert(condition: bool, msg: str) -> None:
+    if not condition:
+        raise RuntimeError(f"[PREFLIGHT] {msg}")
+
+_PLACEHOLDER_RE = re.compile(r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}")
+
+def _extract_placeholders(template: str) -> set[str]:
+    return set(_PLACEHOLDER_RE.findall(template or ""))
+
+def preflight_prompt_bundle(bundle: Dict[str, Any]) -> None:
+    _pf_assert(isinstance(bundle, dict), "prompt_bundle is not a dict")
+    _pf_assert("prompts" in bundle, "prompt_bundle missing key 'prompts'")
+    prompts = bundle["prompts"]
+    _pf_assert(isinstance(prompts, dict), "prompt_bundle['prompts'] is not a dict")
+
+    missing = REQUIRED_PROMPT_KEYS - set(prompts.keys())
+    _pf_assert(not missing, f"prompt_bundle missing required prompt keys: {sorted(missing)}")
+
+    s1_user = prompts["S1_USER_GROUP"]
+    s2_user = prompts["S2_USER_ENTITY"]
+    _pf_assert(isinstance(s1_user, str) and s1_user.strip(), "S1_USER_GROUP is empty or not a string")
+    _pf_assert(isinstance(s2_user, str) and s2_user.strip(), "S2_USER_ENTITY is empty or not a string")
+
+    # 1) 템플릿에 실제로 등장하는 placeholder 추출
+    s1_ph = _extract_placeholders(s1_user)
+    s2_ph = _extract_placeholders(s2_user)
+
+    # 2) 최소 필수 placeholder만 강제
+    missing_s1_min = REQUIRED_S1_PLACEHOLDERS_MIN - s1_ph
+    _pf_assert(
+        not missing_s1_min,
+        f"S1_USER_GROUP missing required MIN placeholders: {sorted(missing_s1_min)} "
+        f"(found={sorted(s1_ph)})"
+    )
+
+    # S2: 기본 MIN(항상 필수) 체크
+    missing_s2_min = REQUIRED_S2_PLACEHOLDERS_MIN - s2_ph
+    _pf_assert(
+        not missing_s2_min,
+        f"S2_USER_ENTITY missing required MIN placeholders: {sorted(missing_s2_min)} (found={sorted(s2_ph)})"
+    )
+
+    # S2: master_table 계열은 alias 중 하나면 OK
+    has_any_master = any(req_set.issubset(s2_ph) for req_set in REQUIRED_S2_PLACEHOLDERS_MIN_ANY)
+    _pf_assert(
+        has_any_master,
+        f"S2_USER_ENTITY must contain one of {REQUIRED_S2_PLACEHOLDERS_MIN_ANY} "
+        f"(found={sorted(s2_ph)})"
+    )
+
+    # 3) “미해결 placeholder 위험” 체크:
+    #    템플릿에 있는 placeholder가 우리가 제공 가능한 키 집합(ALLOWED) 안에 있어야 함
+    bad_s1 = sorted([p for p in s1_ph if p not in ALLOWED_S1_PLACEHOLDERS])
+    _pf_assert(
+        not bad_s1,
+        f"S1_USER_GROUP contains unknown placeholders not supported by renderer: {bad_s1}. "
+        f"Allowed={sorted(ALLOWED_S1_PLACEHOLDERS)}"
+    )
+
+    bad_s2 = sorted([p for p in s2_ph if p not in ALLOWED_S2_PLACEHOLDERS])
+    _pf_assert(
+        not bad_s2,
+        f"S2_USER_ENTITY contains unknown placeholders not supported by renderer: {bad_s2}. "
+        f"Allowed={sorted(ALLOWED_S2_PLACEHOLDERS)}"
+    )
+
+def preflight_s0_allocation(mode: str, spread_mode: str) -> None:
+    if str(mode).upper() != "S0":
+        return
+
+    _pf_assert(
+        spread_mode in {"hard", "soft"},
+        f"S0_SPREAD_MODE must be 'hard' or 'soft' (got '{spread_mode}')",
+    )
+
+    # Allocation API availability
+    required_funcs = [
+        build_s0_allocation_artifact,
+        require_valid_s0_allocation_artifact,
+        s0_artifact_to_s2_targets,
+    ]
+    for fn in required_funcs:
+        _pf_assert(callable(fn), f"S0 allocation dependency missing or not callable: {fn}")
+
+
+def preflight_input_table(df: pd.DataFrame) -> None:
+    _pf_assert(isinstance(df, pd.DataFrame), "Input table is not a DataFrame")
+    required_cols = {"specialty", "anatomy", "modality_or_type", "objective_list"}
+    missing = required_cols - set(df.columns)
+    _pf_assert(
+        not missing,
+        f"Input table missing required columns: {sorted(missing)}",
+    )
+
+
+def preflight_output_dir(out_dir: Path) -> None:
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        test = out_dir / ".write_test"
+        test.write_text("ok", encoding="utf-8")
+        test.unlink()
+    except Exception as e:
+        raise RuntimeError(f"[PREFLIGHT] Output directory not writable: {out_dir}") from e
+
+
+def preflight_api_key(provider: str, model_config: Dict[str, Any]) -> None:
+    api_key_env = model_config[provider]["api_key_env"]
+    _pf_assert(
+        bool(os.getenv(api_key_env, "").strip()),
+        f"Missing API key: env {api_key_env} is not set",
+    )
+
+
+# -------------------------
+# Contract & Validation (Minimum + Hard-fail)
+# -------------------------
+def normalize_tags(tags: Any) -> str:
+    if tags is None:
+        return ""
+    if isinstance(tags, str):
+        return tags.strip()
+    if isinstance(tags, list):
+        return " ".join([str(t).strip() for t in tags if str(t).strip()])
+    return str(tags).strip()
+
+
+def validate_and_fill_entity(entity: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate and normalize an entity object for Step01 output (text-only).
+
+    Note: Image-related fields are intentionally excluded in Step01.
+    """
+    e_in = dict(entity or {})
+    e_out: Dict[str, Any] = {}
+
+    if "group_id" in e_in and e_in["group_id"] is not None:
+        e_out["group_id"] = str(e_in["group_id"]).strip()
+
+    e_out["entity_name"] = str(e_in.get("entity_name") or "").strip() or "Unnamed entity"
+
+    cards = e_in.get("anki_cards") or []
+    if not isinstance(cards, list):
+        cards = []
+    norm_cards: List[Dict[str, Any]] = []
+    for c in cards:
+        if not isinstance(c, dict):
+            continue
+        cc = {
+            "card_type": str(c.get("card_type") or "Basic").strip(),
+            "front": str(c.get("front") or "").strip(),
+            "back": str(c.get("back") or "").strip(),
+            "tags": str(c.get("tags") or "").strip(),
+        }
+        if not (cc["front"] and cc["back"]):
+            continue
+        norm_cards.append(cc)
+
+    e_out["anki_cards"] = norm_cards
+    return e_out
+
+
+def hard_fail_record(record: Dict[str, Any]) -> None:
+    """Hard-fail rules (Step01, text-only)."""
+    cc = record.get("curriculum_content") or {}
+    ti = cc.get("table_infographic") or {}
+    prompt_en = str(ti.get("prompt_en") or "").strip()
+    if not prompt_en:
+        raise ValueError("Hard-fail: curriculum_content.table_infographic.prompt_en is empty")
+
+    entities = cc.get("entities")
+    if not isinstance(entities, list):
+        raise ValueError("Hard-fail: curriculum_content.entities is not a list")
+
+    # ---- Runtime logging hard requirements (Step01) ----
+    rt = (record.get("metadata") or {}).get("runtime")
+    if not isinstance(rt, dict):
+        raise ValueError("Hard-fail: metadata.runtime missing or not an object")
+
+    required_rt_keys = [
+        "run_tag", "mode", "arm", "provider", "model_stage1", "model_stage2",
+        "thinking_enabled", "thinking_budget",
+        "rag_enabled", "rag_mode", "rag_queries_count", "rag_sources_count",
+        "latency_sec_stage1", "latency_sec_stage2",
+        "input_tokens_stage1", "output_tokens_stage1", "input_tokens_stage2", "output_tokens_stage2",
+    ]
+    missing_rt = [k for k in required_rt_keys if k not in rt]
+    if missing_rt:
+        raise ValueError(f"Hard-fail: metadata.runtime missing keys: {missing_rt}")
+
+
+    forbidden_keys = {"row_image_prompt_en", "row_image_necessity", "importance_score"}
+    for i, e in enumerate(entities):
+        if not isinstance(e, dict):
+            continue
+        present = sorted([k for k in e.keys() if (k in forbidden_keys) or k.startswith("row_image_")])
+        if present:
+            raise ValueError(
+                f"Hard-fail: forbidden entity keys present at entities[{i}]: {present}. "
+                "Step01 output must be text-only; image/importance fields are handled in a separate pipeline."
+            )
+
+
+def validate_and_fill_record(
+    record: Dict[str, Any],
+    *,
+    run_tag: str,
+    mode: str,
+    provider: str,
+    arm: str,
+) -> Dict[str, Any]:
+    r = dict(record or {})
+
+    md = dict(r.get("metadata") or {})
+    src = dict(r.get("source_info") or md.get("source_info") or {})
+
+    md.setdefault("provider", provider)
+    md.setdefault("arm", arm)
+    md.setdefault("run_tag", run_tag)
+    md.setdefault("mode", mode)
+    md.setdefault("timestamp", now_ts())
+
+    r["metadata"] = md
+    r["source_info"] = src
+
+    cc = dict(r.get("curriculum_content") or {})
+    cc.setdefault("visual_type", "General")
+    cc.setdefault("master_table", "")
+    ti = dict(cc.get("table_infographic") or {})
+    ti.setdefault("style", "Default")
+    ti.setdefault("keywords_en", "")
+    ti.setdefault("prompt_en", "")
+    cc["table_infographic"] = ti
+
+    ents = cc.get("entities")
+    if not isinstance(ents, list):
+        ents = []
+    cc["entities"] = [validate_and_fill_entity(e) for e in ents if isinstance(e, dict)]
+    r["curriculum_content"] = cc
+
+    hard_fail_record(r)
+    return r
+
+
+# -------------------------
+# Input loading & group row normalization
+# -------------------------
+def default_input_path(base_dir: Path) -> Path:
+    return base_dir / "2_Data" / "metadata" / "groups_canonical.csv"
+
+
+def read_input_table(path: Path) -> pd.DataFrame:
+    if str(path).lower().endswith(".xlsx"):
+        return pd.read_excel(path)
+    return pd.read_csv(path)
+
+
+def coalesce(row: Dict[str, Any], keys: List[str], default: Any = "") -> Any:
+    for k in keys:
+        if k in row and not is_blank(row.get(k)):
+            return row.get(k)
+    return default
+
+
+def normalize_objective_list(v: Any) -> List[str]:
+    """Normalize objective_list into List[str]."""
+    if v is None:
+        return []
+    if isinstance(v, list):
+        return [str(x).strip() for x in v if str(x).strip()]
+
+    s = str(v).strip()
+    if not s:
+        return []
+
+    if s.startswith("[") and s.endswith("]"):
+        try:
+            x = json.loads(s)
+            if isinstance(x, list):
+                return [str(y).strip() for y in x if str(y).strip()]
+        except Exception:
+            pass
+
+    parts = re.split(r"[\n;\|]+", s)
+    parts = [p.strip() for p in parts if p.strip()]
+    return parts
+
+
+CAP_CHARS_TOTAL_RISK = 2200
+
+
+def apply_cap_chars_total(
+    objectives: List[str],
+    cap_chars_total: int = CAP_CHARS_TOTAL_RISK,
+) -> Tuple[List[str], List[int], int]:
+    """Deterministic greedy truncation by total character budget."""
+    if not objectives:
+        return [], [], 0
+
+    selected: List[str] = []
+    indices: List[int] = []
+    total = 0
+
+    for i, obj in enumerate(objectives):
+        obj_s = str(obj).strip()
+        if not obj_s:
+            continue
+        n = len(obj_s)
+        if total + n > cap_chars_total:
+            break
+        selected.append(obj_s)
+        indices.append(i)
+        total += n
+
+    return selected, indices, total
+
+
+def normalize_row(raw: Dict[str, Any]) -> Dict[str, Any]:
+    r = dict(raw or {})
+
+    specialty = coalesce(r, ["specialty", "Specialty"], "Radiology")
+    anatomy = coalesce(r, ["anatomy", "Anatomy"], "General")
+    modality = coalesce(r, ["modality_or_type", "Modality/Type", "Modality", "Type"], "")
+    category = coalesce(r, ["category", "Category"], "")
+    group_key = coalesce(r, ["group_key", "GroupKey", "group"], "")
+
+    obj_list = coalesce(r, ["objective_list", "Objectives", "objective", "LearningObjectives"], [])
+    obj_list = normalize_objective_list(obj_list)
+
+    split_index = safe_int(coalesce(r, ["split_index", "SplitIndex"], 0), 0)
+
+    return {
+        "specialty": str(specialty),
+        "anatomy": str(anatomy),
+        "modality_or_type": str(modality),
+        "category": str(category),
+        "group_key": str(group_key),
+        "objective_list": obj_list,
+        "split_index": split_index,
+        "_raw": r,
+    }
+
+
+def make_stable_group_id(specialty: str, anatomy: str, modality: str, category: str, split_index: int) -> str:
+    import hashlib as _hashlib
+    key = f"{specialty}|{anatomy}|{modality}|{category}|{split_index}"
+    return _hashlib.sha1(key.encode("utf-8")).hexdigest()[:16]
+
+
+# -------------------------
+# Provider configs
+# -------------------------
+MODEL_CONFIG = {
+    "gemini": {
+        "model_name": "gemini-2.5-flash",
+        "api_key_env": "GOOGLE_API_KEY",
+        "supports": ["chat"],
+    },
+    "gpt": {
+        "model_name": "gpt-5.2-pro-2025-12-11",
+        "api_key_env": "OPENAI_API_KEY",
+        "supports": ["chat", "responses"],
+    },
+    "deepseek": {
+        "model_name": "deepseek-reasoner",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "base_url": "https://api.deepseek.com",
+        "supports": ["chat"],
+    },
+    "claude": {
+        "model_name": "claude-3-5-sonnet-20241022",
+        "api_key_env": "ANTHROPIC_API_KEY",
+        "supports": ["chat"],
+    },
+}
+
+ARM_CONFIGS = {
+    "A": {"label": "Baseline",   "provider": "gemini", "api_style": "chat",      "thinking": False, "rag": False,
+          "model_stage1": "gemini-2.5-flash", "model_stage2": "gemini-2.5-flash"},
+    "B": {"label": "RAG_Only",   "provider": "gemini", "api_style": "chat",      "thinking": False, "rag": True,
+          "model_stage1": "gemini-2.5-flash", "model_stage2": "gemini-2.5-flash"},
+    "C": {"label": "Thinking",   "provider": "gemini", "api_style": "chat",      "thinking": True,  "rag": False,
+          "model_stage1": "gemini-2.5-flash", "model_stage2": "gemini-2.5-flash"},
+    "D": {"label": "Synergy",    "provider": "gemini", "api_style": "chat",      "thinking": True,  "rag": True,
+          "model_stage1": "gemini-2.5-flash", "model_stage2": "gemini-2.5-flash"},
+    "E": {"label": "High_End",   "provider": "gemini", "api_style": "chat",      "thinking": True,  "rag": False,
+          "model_stage1": "gemini-2.5-pro",   "model_stage2": "gemini-2.5-pro"},
+    "F": {"label": "Benchmark",  "provider": "gpt",    "api_style": "responses", "thinking": True,  "rag": False,
+          "model_stage1": "gpt-5.2-pro-2025-12-11", "model_stage2": "gpt-5.2-pro-2025-12-11"},
+}
+
+
+def validate_arm_cfg(arm_cfg: Dict[str, Any]) -> None:
+    api_style = (arm_cfg.get("api_style") or "").strip().lower()
+    provider = (arm_cfg.get("provider") or "").strip().lower()
+
+    if not provider:
+        raise RuntimeError("arm_cfg must define provider explicitly")
+    if provider not in MODEL_CONFIG:
+        raise RuntimeError(f"Unsupported provider in arm_cfg: {provider}")
+
+    if not api_style:
+        raise RuntimeError("arm_cfg must define api_style explicitly (no implicit routing)")
+    if api_style not in {"chat", "responses"}:
+        raise RuntimeError(f"Invalid api_style='{api_style}'. Must be one of ['chat','responses'].")
+
+    supports = MODEL_CONFIG[provider].get("supports") or []
+    if api_style not in supports:
+        raise RuntimeError(
+            f"Provider '{provider}' does not support api_style '{api_style}'. Supported={supports}"
+        )
+
+
+@dataclass
+class ProviderClients:
+    gemini: Any = None
+    openai: Any = None
+    deepseek: Any = None
+    claude: Any = None
+
+
+def build_clients(provider: str, api_key: str) -> ProviderClients:
+    c = ProviderClients()
+    if provider == "gemini":
+        import google.generativeai as genai  # type: ignore
+        genai.configure(api_key=api_key)
+        c.gemini = genai
+    elif provider == "gpt":
+        from openai import OpenAI  # type: ignore
+        c.openai = OpenAI(api_key=api_key)
+    elif provider == "deepseek":
+        from openai import OpenAI  # type: ignore
+        c.deepseek = OpenAI(api_key=api_key, base_url=MODEL_CONFIG["deepseek"]["base_url"])
+    elif provider == "claude":
+        import anthropic  # type: ignore
+        c.claude = anthropic.Anthropic(api_key=api_key)
+    return c
+
+
+# -------------------------
+# LLM call helpers
+# -------------------------
+def extract_json_object(raw: str) -> Dict[str, Any]:
+    raw = (raw or "").strip()
+    if not raw:
+        raise ValueError("Empty response")
+
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+
+    m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", raw, re.IGNORECASE)
+    if m:
+        return json.loads(m.group(1).strip())
+
+    m2 = re.search(r"\{[\s\S]*\}", raw, re.MULTILINE)
+    if m2:
+        return json.loads(m2.group(0).strip())
+
+    raise ValueError("Could not parse JSON object")
+
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, str(default)).strip())
+    except Exception:
+        return default
+
+
+
+def _ensure_dir(p: str) -> None:
+    try:
+        os.makedirs(p, exist_ok=True)
+    except Exception:
+        pass
+
+
+def _debug_write(debug_dir: Optional[str], filename: str, content: str) -> None:
+    if not debug_dir:
+        return
+    _ensure_dir(debug_dir)
+    try:
+        fp = os.path.join(debug_dir, filename)
+        with open(fp, "w", encoding="utf-8") as f:
+            f.write(content if content is not None else "")
+    except Exception:
+        # Debug logging must never break the run.
+        pass
+
+
+def _looks_truncated_json(raw: str) -> bool:
+    raw = (raw or "").strip()
+    if not raw:
+        return False
+    # If it starts like JSON but does not contain a closing brace, it is likely truncated.
+    if raw.startswith("{") and ("}" not in raw):
+        return True
+    # If braces are imbalanced, likely truncated.
+    try:
+        return raw.count("{") > raw.count("}")
+    except Exception:
+        return False
+
+def _env_float(name: str, default: float) -> float:
+    try:
+        return float(os.environ.get(name, str(default)).strip())
+    except Exception:
+        return default
+
+
+def _is_transient_error(e: Exception) -> bool:
+    name = type(e).__name__
+    msg = str(e).lower()
+
+    transient_classnames = {
+        "APITimeoutError", "Timeout", "TimeoutError", "ReadTimeout", "ConnectTimeout",
+        "APIConnectionError", "RateLimitError", "ServiceUnavailableError",
+        "InternalServerError", "BadGatewayError", "GatewayTimeoutError",
+        "DeadlineExceeded", "ResourceExhausted", "Unavailable",
+    }
+    if name in transient_classnames:
+        return True
+
+    transient_markers = [
+        "timed out", "timeout", "rate limit", "too many requests", "temporarily unavailable",
+        "service unavailable", "internal server error", "bad gateway", "gateway timeout",
+        "connection aborted", "connection reset", "connection error", "tls", "502", "503", "504", "429",
+    ]
+    return any(m in msg for m in transient_markers)
+
+
+def _raise_truncation(stage: int, provider: str, finish_reason: str | None) -> None:
+    raise RuntimeError(
+        f"[Stage{stage}] TruncatedOutputError: provider={provider} finish_reason={finish_reason or 'UNKNOWN'}"
+    )
+
+
+
+def call_llm(
+    *,
+    provider: str,
+    clients: ProviderClients,
+    model_name: str,
+    system_prompt: str,
+    user_prompt: str,
+    temperature: float,
+    timeout_s: int,
+    stage: int,
+    api_style: str,
+    # Runtime logging controls
+    thinking_enabled: bool,
+    thinking_budget: int,
+    # Debug dumping (optional)
+    debug_dir: Optional[str] = None,
+    debug_key: Optional[str] = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str], Dict[str, Any]]:
+    """
+    LLM caller with conservative transient retry and truncation hard-fail.
+
+    Returns:
+      (parsed_json | None, err | None, runtime_meta)
+
+    runtime_meta is always returned (even on failure) and is safe to serialize.
+    """
+    retry_max = _env_int("LLM_RETRY_MAX", 2)
+    backoff_base = _env_float("LLM_RETRY_BACKOFF_BASE_S", 2.0)
+    jitter_max = _env_float("LLM_RETRY_JITTER_MAX_S", 1.0)
+
+    max_out_stage1 = _env_int("MAX_OUTPUT_TOKENS_STAGE1", 3200)
+    max_out_stage2 = _env_int("MAX_OUTPUT_TOKENS_STAGE2", 3200)
+    max_out_base = max_out_stage1 if stage == 1 else max_out_stage2
+    # For truncation/format failures, we may increase output budget on retry (capped).
+    max_out_retry_cap = _env_int("MAX_OUTPUT_TOKENS_RETRY_CAP", 8192)
+    max_out = max_out_base
+
+    # meta container (always returned)
+    meta: Dict[str, Any] = {
+        "stage": stage,
+        "provider": provider,
+        "model": model_name,
+        "api_style": (api_style or "").strip().lower(),
+        "thinking_enabled": bool(thinking_enabled),
+        "thinking_budget": int(thinking_budget),
+        "attempts": 0,
+        "latency_sec": None,
+        "finish_reason": None,
+        "input_tokens": None,
+        "output_tokens": None,
+        "total_tokens": None,
+        "raw_usage": None,
+        "error_class": None,
+        "error_message": None,
+    }
+
+    last_err: Optional[str] = None
+
+    for attempt in range(retry_max + 1):
+        meta["attempts"] = attempt + 1
+        try:
+            # Stage latency should reflect the successful request attempt.
+            t0 = time.perf_counter()
+
+            if provider == "gemini":
+                genai = clients.gemini
+                m = genai.GenerativeModel(model_name=model_name, system_instruction=system_prompt)
+
+                # Debug dump prompts (best-effort)
+                dk = (debug_key or f"stage{stage}")
+                _debug_write(debug_dir, f"{dk}__system_prompt.txt", system_prompt or "")
+                _debug_write(debug_dir, f"{dk}__user_prompt.txt", user_prompt or "")
+
+                # Optional: force JSON mime where supported (genai>=0.7 typically accepts response_mime_type)
+                force_json_mime = os.environ.get("GEMINI_FORCE_JSON_MIME", "1").strip() not in {"0", "false", "False", "NO", "no"}
+                gen_cfg = {"temperature": temperature, "max_output_tokens": max_out}
+                if force_json_mime:
+                    gen_cfg["response_mime_type"] = "application/json"
+
+                # NOTE: google.generativeai does not expose "thinking budget" as a stable public API.
+                # We log the intended budget for audit even if the provider ignores it.
+                try:
+                    r = m.generate_content(
+                        user_prompt,
+                        generation_config=gen_cfg,
+                        request_options={"timeout": timeout_s},
+                    )
+                except TypeError:
+                    # Older/strict clients may reject response_mime_type or generation_config keys.
+                    gen_cfg.pop("response_mime_type", None)
+                    r = m.generate_content(
+                        user_prompt,
+                        generation_config=gen_cfg,
+                        request_options={"timeout": timeout_s},
+                    )
+
+                meta["latency_sec"] = round(time.perf_counter() - t0, 6)
+
+                # Finish reason (best-effort)
+                finish_reason = None
+                try:
+                    finish_reason = getattr(getattr(r, "candidates", [None])[0], "finish_reason", None)
+                except Exception:
+                    pass
+                meta["finish_reason"] = finish_reason
+
+                raw_text = getattr(r, "text", None) or ""
+                _debug_write(debug_dir, f"{dk}__raw_response.txt", raw_text)
+
+                try:
+                    parsed = extract_json_object(raw_text)
+                    return parsed, None, meta
+                except Exception as e:
+                    # If it looks truncated, attempt a targeted retry by increasing output tokens and tightening constraints.
+                    is_trunc = _looks_truncated_json(raw_text)
+                    meta["error_class"] = e.__class__.__name__
+                    meta["error_message"] = str(e)
+                    meta["truncation_suspected"] = bool(is_trunc)
+                    _debug_write(debug_dir, f"{dk}__exception.txt", f"{e.__class__.__name__}: {e}\ntruncation_suspected={is_trunc}\n")
+
+                    last_err = f"{e.__class__.__name__}: {e}"
+                    # Prepare for retry (if any)
+                    if attempt < retry_max:
+                        # Increase output budget on retry (capped)
+                        max_out = min(max_out_base * (attempt + 2), max_out_retry_cap)
+                        # If truncation is suspected, ask for compact outputs
+                        if is_trunc:
+                            user_prompt = (
+                                (user_prompt or "").rstrip()
+                                + "\n\n[IMPORTANT]\n"
+                                + "Your previous response was TRUNCATED and did not form a complete JSON object. "
+                                  "Return a COMPLETE JSON object ONLY (no prose, no code fences). "
+                                  "Keep long markdown fields compact: master_table_markdown_kr must be <= 20 lines; "
+                                  "if longer, summarize or abbreviate. Do not include any extra keys."
+                            )
+                        else:
+                            user_prompt = (
+                                (user_prompt or "").rstrip()
+                                + "\n\n[IMPORTANT]\n"
+                                + "Return a COMPLETE JSON object ONLY (no prose, no code fences). "
+                                  "Do not include any extra keys."
+                            )
+                    # Fall through to retry loop
+                    raise
+
+
+            if provider == "gpt":
+                cli = clients.openai
+                api_style_norm = (api_style or "").strip().lower()
+                if api_style_norm not in {"chat", "responses"}:
+                    err = f"Invalid api_style for provider=gpt: {api_style_norm} (expected chat|responses)"
+                    meta["error_class"] = "ConfigError"
+                    meta["error_message"] = err
+                    return None, err, meta
+
+                # "thinking" controls are provider/model dependent.
+                # For audit, we always log intended values; API params are best-effort and may be ignored.
+                if api_style_norm == "chat":
+                    # OpenAI Chat Completions (legacy)
+                    r = cli.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        response_format={"type": "json_object"},
+                        temperature=temperature,
+                        max_tokens=max_out,
+                        timeout=timeout_s,
+                    )
+                    meta["latency_sec"] = round(time.perf_counter() - t0, 6)
+
+                    # Usage (best-effort)
+                    try:
+                        u = getattr(r, "usage", None)
+                        if u is not None:
+                            meta["input_tokens"] = int(getattr(u, "prompt_tokens", None)) if getattr(u, "prompt_tokens", None) is not None else None
+                            meta["output_tokens"] = int(getattr(u, "completion_tokens", None)) if getattr(u, "completion_tokens", None) is not None else None
+                            meta["total_tokens"] = int(getattr(u, "total_tokens", None)) if getattr(u, "total_tokens", None) is not None else None
+                            meta["raw_usage"] = {
+                                "prompt_tokens": meta["input_tokens"],
+                                "completion_tokens": meta["output_tokens"],
+                                "total_tokens": meta["total_tokens"],
+                            }
+                    except Exception:
+                        pass
+
+                    finish_reason = None
+                    try:
+                        finish_reason = getattr(r.choices[0], "finish_reason", None)
+                    except Exception:
+                        finish_reason = None
+                    meta["finish_reason"] = str(finish_reason) if finish_reason is not None else None
+
+                    if meta["finish_reason"] is not None:
+                        fr = str(meta["finish_reason"]).upper()
+                        if "LENGTH" in fr or "MAX_TOKENS" in fr:
+                            _raise_truncation(stage, provider, fr)
+
+                    try:
+                        content = r.choices[0].message.content
+                    except Exception:
+                        content = None
+                    if not isinstance(content, str) or not content.strip():
+                        err = f"[Stage{stage}] EmptyResponseError: missing message content"
+                        meta["error_class"] = "EmptyResponseError"
+                        meta["error_message"] = err
+                        return None, err, meta
+                    return extract_json_object(content), None, meta
+
+                # OpenAI Responses API
+                if not hasattr(cli, "responses"):
+                    # Local SDK is likely old; fall back to chat.completions path.
+                    api_style_norm = "chat"
+                    # Re-enter via chat logic by raising a controlled error to retry with chat.
+                    raise AttributeError("OpenAI client has no 'responses' attribute; falling back to chat")
+                r = cli.responses.create(
+                    model=model_name,
+                    input=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    text={"format": {"type": "json_object"}},
+                    temperature=temperature,
+                    max_output_tokens=max_out,
+                    timeout=timeout_s,
+                )
+                meta["latency_sec"] = round(time.perf_counter() - t0, 6)
+
+                # Usage (best-effort; schema differs)
+                try:
+                    u = getattr(r, "usage", None)
+                    if u is not None:
+                        # responses usage may be nested (input_tokens/output_tokens)
+                        it = getattr(u, "input_tokens", None)
+                        ot = getattr(u, "output_tokens", None)
+                        tt = getattr(u, "total_tokens", None)
+                        meta["input_tokens"] = int(it) if it is not None else None
+                        meta["output_tokens"] = int(ot) if ot is not None else None
+                        meta["total_tokens"] = int(tt) if tt is not None else None
+                        meta["raw_usage"] = {
+                            "input_tokens": meta["input_tokens"],
+                            "output_tokens": meta["output_tokens"],
+                            "total_tokens": meta["total_tokens"],
+                        }
+                except Exception:
+                    pass
+
+                # Extract output_text
+                text_parts: List[str] = []
+                try:
+                    ot = getattr(r, "output_text", None)
+                    if isinstance(ot, str) and ot.strip():
+                        text_parts.append(ot)
+                except Exception:
+                    pass
+
+                if not text_parts:
+                    # fallback traversal
+                    try:
+                        for item in (getattr(r, "output", None) or []):
+                            for c in (getattr(item, "content", None) or []):
+                                t = getattr(c, "text", None)
+                                if isinstance(t, str) and t.strip():
+                                    text_parts.append(t)
+                    except Exception:
+                        pass
+
+                if not text_parts:
+                    err = f"[Stage{stage}] EmptyResponseError: responses output_text missing"
+                    meta["error_class"] = "EmptyResponseError"
+                    meta["error_message"] = err
+                    return None, err, meta
+
+                # finish_reason is not always exposed in responses; leave as None if absent
+                return extract_json_object("\n".join(text_parts)), None, meta
+
+            return None, f"[Stage{stage}] UnsupportedProvider: {provider}", meta
+
+        except Exception as e:
+            meta["error_class"] = type(e).__name__
+            meta["error_message"] = str(e)
+
+            dk = (debug_key or f"stage{stage}")
+            _debug_write(debug_dir, f"{dk}__exception.txt", f"{type(e).__name__}: {e}\n")
+
+            if _is_transient_error(e) and attempt < retry_max:
+                last_err = f"[Stage{stage}] {type(e).__name__}: {e} (attempt={attempt+1}/{retry_max+1})"
+                sleep_s = backoff_base * (2 ** attempt) + random.random() * jitter_max
+                time.sleep(min(sleep_s, 30.0))
+                continue
+
+            return None, f"[Stage{stage}] {type(e).__name__}: {e}", meta
+
+    return None, last_err or f"[Stage{stage}] UnknownError: retry loop exhausted", meta
+
+
+# -------------------------
+# Stage validation / fallbacks
+# -------------------------
+# -------------------------
+TABLE_INFOGRAPHIC_CONSTRAINTS = (
+    "Single-page educational infographic, white background, high contrast, minimal text (labels only), "
+    "no watermark, clinically accurate."
+)
+
+
+def validate_stage1(stage1: Dict[str, Any], fallback_summary: str) -> Dict[str, Any]:
+    s = dict(stage1 or {})
+
+    s.setdefault("objective_summary", fallback_summary)
+    s.setdefault("group_objectives", [])
+    s.setdefault("visual_type_category", "General")
+    s.setdefault("master_table_markdown_kr", "")
+    s.setdefault("entity_list", [])
+    s.setdefault("table_infographic_style", "Default")
+    s.setdefault("table_infographic_keywords_en", fallback_summary)
+    s.setdefault("table_infographic_prompt_en", "")
+
+    mt = str(s.get("master_table_markdown_kr") or "").strip()
+    if not mt or len(mt) < 10:
+        mt = f"| Concept | Summary |\n|---|---|\n| **Overview** | {fallback_summary} |"
+    s["master_table_markdown_kr"] = mt
+
+    prompt = str(s.get("table_infographic_prompt_en") or "").strip()
+    if not prompt:
+        kw = str(s.get("table_infographic_keywords_en") or fallback_summary).strip() or fallback_summary
+        prompt = f"Educational medical infographic about {kw}. {TABLE_INFOGRAPHIC_CONSTRAINTS}"
+    s["table_infographic_prompt_en"] = prompt
+
+    ent = s.get("entity_list")
+    if not isinstance(ent, list):
+        ent = []
+    ent = [str(x).strip() for x in ent if str(x).strip()]
+    s["entity_list"] = ent
+
+    return s
+
+
+def validate_stage2(stage2: Dict[str, Any]) -> Dict[str, Any]:
+    s_in = dict(stage2 or {})
+
+    out: Dict[str, Any] = {}
+    if "group_id" in s_in and s_in["group_id"] is not None:
+        out["group_id"] = str(s_in["group_id"])
+    out["entity_name"] = str(s_in.get("entity_name") or "Unnamed entity").strip()
+
+    cards = s_in.get("anki_cards") or []
+    if not isinstance(cards, list):
+        cards = []
+    norm_cards: List[Dict[str, Any]] = []
+    for c in cards:
+        if not isinstance(c, dict):
+            continue
+        cc = {
+            "card_type": str(c.get("card_type") or "Basic").strip(),
+            "front": str(c.get("front") or "").strip(),
+            "back": str(c.get("back") or "").strip(),
+            "tags": str(c.get("tags") or "").strip(),
+        }
+        if not (cc["front"] and cc["back"]):
+            continue
+        norm_cards.append(cc)
+
+    out["anki_cards"] = norm_cards
+    return out
+
+
+# -------------------------
+# Local S2 target model (to avoid coupling)
+# -------------------------
+@dataclass(frozen=True)
+class _S2Target:
+    entity_name: str
+    cards_for_entity_exact: int
+
+
+# -------------------------
+# MAIN PROCESS LOOP
+# -------------------------
+def process_single_group(
+    row: Dict[str, Any],
+    *,
+    base_dir: Path,
+    provider: str,
+    clients: ProviderClients,
+    arm: str,
+    arm_config: Dict[str, Any],
+    bundle: Dict[str, Any],
+    run_tag: str,
+    mode: str,
+    model_stage1: str,
+    model_stage2: str,
+    temp_stage1: float,
+    temp_stage2: float,
+    timeout_s: int,
+    cards_per_entity_default: int,
+    s0_spread_mode: str,
+    entity_list_cap: int,
+    debug_dir: Optional[str] = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+
+    P_S1_SYS = bundle["prompts"]["S1_SYSTEM"]
+    P_S1_USER_T = bundle["prompts"]["S1_USER_GROUP"]
+    P_S2_SYS = bundle["prompts"]["S2_SYSTEM"]
+    P_S2_USER_T = bundle["prompts"]["S2_USER_ENTITY"]
+
+    sp = row.get("specialty", "Radiology")
+    an = row.get("anatomy", "General")
+    mod = row.get("modality_or_type", "")
+    cat = row.get("category", "")
+    key = row.get("group_key", "")
+    objs = row.get("objective_list", [])
+
+    base_path = f"{sp} > {an} > {mod}".strip()
+    cat_s = str(cat).strip()
+    group_path = base_path + (f" > {cat_s}" if cat_s else "")
+
+    original_objs = normalize_objective_list(objs)
+    original_n = len(original_objs)
+    original_chars = sum(len(x) for x in original_objs)
+
+    objective_selection_policy = "no_truncation"
+    selected_indices: List[int] = list(range(original_n))
+    selected_chars = original_chars
+
+    if original_chars > CAP_CHARS_TOTAL_RISK:
+        objs, selected_indices, selected_chars = apply_cap_chars_total(
+            original_objs, cap_chars_total=CAP_CHARS_TOTAL_RISK
+        )
+        objective_selection_policy = f"risk_only_cap_chars_total={CAP_CHARS_TOTAL_RISK}"
+    else:
+        objs = original_objs
+
+    gid = make_stable_group_id(str(sp), str(an), str(mod), str(cat), safe_int(row.get("split_index", 0), 0))
+
+    # -------------------------
+    # Runtime logging context (Step01 policy)
+    # -------------------------
+    thinking_enabled = bool(arm_config.get("thinking", False))
+    rag_enabled = bool(arm_config.get("rag", False))
+
+    # Thinking budget is logged as an INT even if the provider silently ignores it.
+    # Precedence: per-arm override > global ON default; OFF => 0
+    if thinking_enabled:
+        thinking_budget = env_int(f"THINKING_BUDGET_ARM_{arm}", env_int("THINKING_BUDGET_ON", 1024))
+    else:
+        thinking_budget = 0
+
+    # RAG mode/counts are logged regardless of actual retrieval implementation.
+    # When retrieval is not implemented yet, counts will remain 0 but still be non-null.
+    rag_mode = (os.getenv("RAG_MODE", "none") if rag_enabled else "none").strip().lower() or "none"
+    rag_queries_count = 0
+    rag_sources_count = 0
+
+    # -------- Stage 1 --------
+    objective_bullets = "\n".join([f"- {x}" for x in objs]) if isinstance(objs, list) else str(objs)
+    s1_user = safe_prompt_format(
+        P_S1_USER_T,
+        specialty=sp,
+        anatomy=an,
+        modality_or_type=mod,
+        category=cat,
+        group_path=group_path,
+        group_key=key,
+        group_id=gid,
+        objective_bullets=objective_bullets,
+    )
+
+    s1_json, err1, rt_s1 = call_llm(
+        provider=provider,
+        clients=clients,
+        model_name=model_stage1,
+        system_prompt=P_S1_SYS,
+        user_prompt=s1_user,
+        temperature=temp_stage1,
+        timeout_s=timeout_s,
+        stage=1,
+        api_style=arm_config.get("api_style"),
+        thinking_enabled=thinking_enabled,
+        thinking_budget=thinking_budget,
+        debug_dir=debug_dir,
+        debug_key=f"stage1__{row.get('group_id') or row.get('group_key', 'UNKNOWN')}",
+    )
+    if not s1_json:
+        return None, {"stage": "stage1", "group_id": gid, "error": err1 or "Unknown stage1 error"}
+
+    fallback_txt = objs[0] if isinstance(objs, list) and objs else (key or f"{an} {mod}".strip())
+    s1_json = validate_stage1(s1_json, str(fallback_txt))
+
+    missing = [k for k in ["visual_type_category", "master_table_markdown_kr", "entity_list", "table_infographic_prompt_en"]
+               if k not in s1_json]
+    if missing:
+        return None, {"stage": "stage1", "group_id": gid, "error": f"Stage1 schema missing keys: {missing}. Got keys={sorted(list(s1_json.keys()))}"}
+
+    entity_list = s1_json.get("entity_list", [])
+    if not isinstance(entity_list, list):
+        entity_list = []
+    entity_list = [str(x).strip() for x in entity_list if str(x).strip()]
+    if entity_list_cap > 0:
+        entity_list = entity_list[:entity_list_cap]
+
+    # -------- S0 Allocation → S2 targets --------
+    allocation_path: Optional[str] = None
+    allocation_version: Optional[str] = None
+
+    s2_targets: List[_S2Target] = []
+
+    if str(mode).upper() == "S0":
+        if not entity_list:
+            raise RuntimeError("S0: no entities returned from S1")
+
+        alloc_inputs = S0AllocationInputs(
+            run_tag=run_tag,
+            group_id=gid,
+            arm=arm,
+            entities_from_s1=entity_list,
+        )
+
+        alloc_path = build_s0_allocation_artifact(
+            base_dir=base_dir,
+            inp=alloc_inputs,
+            spread_mode=s0_spread_mode,  # "hard" or "soft"
+        )
+
+        alloc_artifact = require_valid_s0_allocation_artifact(alloc_path)
+        allocation_path = str(alloc_path)
+        allocation_version = str(alloc_artifact.get("allocation_version") or "")
+
+        # Convert to per-entity exact targets
+        targets = s0_artifact_to_s2_targets(alloc_artifact)
+        for t in targets:
+            s2_targets.append(_S2Target(entity_name=t.entity_name, cards_for_entity_exact=int(t.cards_for_entity_exact)))
+
+    else:
+        for ent in entity_list:
+            s2_targets.append(_S2Target(entity_name=ent, cards_for_entity_exact=int(cards_per_entity_default)))
+
+    # -------- Stage 2 --------
+    entities_out: List[Dict[str, Any]] = []
+    rt_s2_last: Optional[Dict[str, Any]] = None
+
+    for tgt in s2_targets:
+        ent_name = str(tgt.entity_name).strip()
+        if not ent_name:
+            continue
+
+        expected_n = int(tgt.cards_for_entity_exact)
+
+        entity_context = (
+            f"Group ID: {gid}\n"
+            f"Group Path: {group_path}\n"
+            f"Visual Type: {s1_json.get('visual_type_category', 'General')}\n"
+        )
+
+        s2_user = safe_prompt_format(
+            P_S2_USER_T,
+            # canonical + alias 둘 다 제공 (템플릿이 뭐를 쓰든 안전)
+            master_table=s1_json["master_table_markdown_kr"],
+            master_table_md=s1_json["master_table_markdown_kr"],
+
+            group_id=gid,
+            entity_name=ent_name,
+            entity_context=entity_context,
+
+            visual_type=s1_json.get("visual_type_category", "General"),
+            cards_per_entity=expected_n,               # 호환용
+            cards_for_entity_exact=expected_n,         # canonical
+            card_type_quota_lines="- Basic_QA: 1\n- MCQ_Vignette: 1",
+        )
+
+
+        s2_json, err2, rt_s2 = call_llm(
+            provider=provider,
+            clients=clients,
+            model_name=model_stage2,
+            system_prompt=P_S2_SYS,
+            user_prompt=s2_user,
+            temperature=temp_stage2,
+            timeout_s=timeout_s,
+            stage=2,
+            api_style=arm_config.get("api_style"),
+            thinking_enabled=thinking_enabled,
+            thinking_budget=thinking_budget,
+            debug_dir=debug_dir,
+            debug_key=f"stage2__{group_id}",
+        )
+        if not s2_json:
+            # In S0, underfill/empty is unacceptable; fail fast.
+            if str(mode).upper() == "S0":
+                raise RuntimeError(f"S0 Stage2 failed: entity={ent_name} error={err2 or 'Unknown error'}")
+            continue
+
+        s2_json = validate_stage2(s2_json)
+        rt_s2_last = dict(rt_s2 or {})
+
+        got_n = len(s2_json.get("anki_cards") or [])
+        if got_n != expected_n:
+            raise RuntimeError(
+                f"S0 exact-N violated: expected {expected_n}, got {got_n} (entity={s2_json.get('entity_name', '?')})"
+            )
+
+        entities_out.append(s2_json)
+
+    # -------- Assemble Record --------
+    record = {
+        "metadata": {
+            "id": gid,
+            "provider": provider,
+            "arm": arm,
+            "arm_label": arm_config.get("label", ""),
+            "run_tag": run_tag,
+            "mode": mode,
+            "timestamp": now_ts(),
+            "model_stage1": model_stage1,
+            "model_stage2": model_stage2,
+            "prompt_dir": bundle.get("prompt_dir"),
+            "prompt_file_ids": bundle.get("prompt_file_ids"),
+            "prompt_bundle_hash": bundle.get("prompt_bundle_hash"),
+
+            # Step01 runtime logging (canonical)
+            "runtime": {
+                "run_tag": run_tag,
+                "mode": mode,
+                "arm": arm,
+                "provider": provider,
+                "model_stage1": model_stage1,
+                "model_stage2": model_stage2,
+
+                "thinking_enabled": thinking_enabled,
+                "thinking_budget": thinking_budget,
+
+                "rag_enabled": rag_enabled,
+                "rag_mode": rag_mode,
+                "rag_queries_count": rag_queries_count,
+                "rag_sources_count": rag_sources_count,
+
+                "latency_sec_stage1": rt_s1.get("latency_sec"),
+                "latency_sec_stage2": rt_s2_last.get("latency_sec") if rt_s2_last is not None else None,
+
+                "input_tokens_stage1": rt_s1.get("input_tokens"),
+                "output_tokens_stage1": rt_s1.get("output_tokens"),
+                "input_tokens_stage2": rt_s2_last.get("input_tokens") if rt_s2_last is not None else None,
+                "output_tokens_stage2": rt_s2_last.get("output_tokens") if rt_s2_last is not None else None,
+            },
+
+
+            # S0 allocation trace (optional, but useful for audit)
+            "s0_allocation_version": allocation_version,
+            "s0_allocation_path": allocation_path,
+            "s0_spread_mode": s0_spread_mode if str(mode).upper() == "S0" else None,
+        },
+        "source_info": {
+            "specialty": sp,
+            "anatomy": an,
+            "modality_or_type": mod,
+            "category": cat,
+            "group_path": group_path,
+            "group_key": key,
+            "objective_list": objs,
+            "split_index": row.get("split_index", 0),
+
+            "objective_original_count": original_n,
+            "objective_original_chars": original_chars,
+            "objective_selected_count": len(objs) if isinstance(objs, list) else 0,
+            "objective_selected_chars": selected_chars,
+            "objective_selected_indices": selected_indices,
+            "objective_selection_policy": objective_selection_policy,
+        },
+        "curriculum_content": {
+            "visual_type": s1_json.get("visual_type_category", "General"),
+            "master_table": s1_json.get("master_table_markdown_kr", ""),
+            "table_infographic": {
+                "style": s1_json.get("table_infographic_style", "Default"),
+                "keywords_en": s1_json.get("table_infographic_keywords_en", ""),
+                "prompt_en": s1_json.get("table_infographic_prompt_en", ""),
+            },
+            "entities": entities_out,
+        },
+        "meta": {
+            "provider": provider,
+            "arm": arm,
+            "arm_label": arm_config.get("label", ""),
+        },
+    }
+
+    record = validate_and_fill_record(record, run_tag=run_tag, mode=mode, provider=provider, arm=arm)
+    return record, None
+
+
+# -------------------------
+# CLI & ENTRYPOINT
+# -------------------------
+def _preflight_provider_model_guard(provider: str, model_stage1: str, model_stage2: str, arm: str) -> None:
+    def _bad(pfx: str, name: str) -> bool:
+        return bool(name) and name.startswith(pfx)
+
+    if provider == "gpt":
+        if _bad("gemini-", model_stage1) or _bad("gemini-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=gpt but model contains gemini-* (stage1={model_stage1}, stage2={model_stage2})")
+        if _bad("claude-", model_stage1) or _bad("claude-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=gpt but model contains claude-* (stage1={model_stage1}, stage2={model_stage2})")
+        if _bad("deepseek-", model_stage1) or _bad("deepseek-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=gpt but model contains deepseek-* (stage1={model_stage1}, stage2={model_stage2})")
+
+    if provider == "gemini":
+        if _bad("gpt-", model_stage1) or _bad("gpt-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=gemini but model contains gpt-* (stage1={model_stage1}, stage2={model_stage2})")
+        if _bad("claude-", model_stage1) or _bad("claude-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=gemini but model contains claude-* (stage1={model_stage1}, stage2={model_stage2})")
+
+    if provider == "claude":
+        if _bad("gpt-", model_stage1) or _bad("gpt-", model_stage2) or _bad("gemini-", model_stage1) or _bad("gemini-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=claude but model contains gpt-/gemini-* (stage1={model_stage1}, stage2={model_stage2})")
+
+    if provider == "deepseek":
+        if _bad("gemini-", model_stage1) or _bad("gemini-", model_stage2) or _bad("claude-", model_stage1) or _bad("claude-", model_stage2):
+            raise ValueError(f"[ARM {arm}] provider=deepseek but model contains gemini-/claude-* (stage1={model_stage1}, stage2={model_stage2})")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base_dir", default=".")
+    parser.add_argument("--run_tag", required=True)
+    parser.add_argument("--arm", default="A")
+    parser.add_argument("--mode", default="S0")
+    parser.add_argument("--sample", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=42)
+
+    parser.add_argument("--only_group_key", action="append", default=[], help="Run only the specified group_key (repeatable).")
+    parser.add_argument("--only_group_keys_file", default=None, help="Path to a text file with one group_key per line (comments with # allowed).")
+
+    args = parser.parse_args()
+
+    # Reproducibility seed
+    random.seed(args.seed)
+    try:
+        import numpy as np
+        np.random.seed(args.seed)
+    except Exception:
+        pass
+
+    base_dir = resolve_base_dir(args.base_dir)
+    load_env(base_dir)
+
+    bundle = load_prompt_bundle(str(base_dir))
+
+    arm = (args.arm or "A").strip().upper()
+    arm_cfg = ARM_CONFIGS.get(arm, {})
+    validate_arm_cfg(arm_cfg)
+
+    provider = (arm_cfg.get("provider") or os.getenv("DEFAULT_PROVIDER", "") or "gemini").strip().lower()
+    if provider not in MODEL_CONFIG:
+        raise ValueError(f"Unsupported provider: {provider}")
+
+    model_stage1 = (arm_cfg.get("model_stage1") or MODEL_CONFIG[provider]["model_name"]).strip()
+    model_stage2 = (arm_cfg.get("model_stage2") or MODEL_CONFIG[provider]["model_name"]).strip()
+    _preflight_provider_model_guard(provider, model_stage1, model_stage2, arm)
+
+    temp_stage1 = env_float("TEMPERATURE_STAGE1", 0.2)
+    temp_stage2 = env_float("TEMPERATURE_STAGE2", 0.3)
+    timeout_s = env_int("TIMEOUT_S", 120)
+
+    # Default cards per entity for NON-S0 modes
+    cards_per_entity_default = env_int("CARDS_PER_ENTITY", 3)
+
+    # S0 spread mode: hard|soft (v2.0)
+    s0_spread_mode = (os.getenv("S0_SPREAD_MODE", "hard") or "hard").strip().lower()
+    if s0_spread_mode not in {"hard", "soft"}:
+        raise RuntimeError(f"Invalid S0_SPREAD_MODE='{s0_spread_mode}'. Must be 'hard' or 'soft'.")
+
+    entity_list_cap = env_int("ENTITY_LIST_CAP", 50)
+
+    # Build output paths early (preflight uses it)
+    out_dir = base_dir / "2_Data" / "metadata" / "generated" / args.run_tag
+    out_path = out_dir / f"output_{provider}_{args.run_tag}__arm{arm}.jsonl"
+
+    # Load input table early (preflight uses it)
+    in_path = default_input_path(base_dir)
+    df = read_input_table(in_path)
+
+    # =========================
+    # PREFLIGHT (Fail-Fast)
+    # =========================
+    preflight_prompt_bundle(bundle)
+    preflight_s0_allocation(args.mode, s0_spread_mode)
+    preflight_input_table(df)
+    preflight_output_dir(out_dir)
+    preflight_api_key(provider, MODEL_CONFIG)
+
+    # Now safe to init clients
+    api_key_env = MODEL_CONFIG[provider]["api_key_env"]
+    api_key = os.getenv(api_key_env, "").strip()
+    clients = build_clients(provider, api_key)
+
+    rows = [normalize_row(r) for r in df.to_dict("records")]
+
+    only_keys = set(args.only_group_key or [])
+    if args.only_group_keys_file:
+        pth = Path(args.only_group_keys_file)
+        for line in pth.read_text(encoding="utf-8").splitlines():
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            only_keys.add(s)
+
+    if only_keys:
+        rows = [r for r in rows if r.get("group_key") in only_keys]
+        if not rows:
+            raise RuntimeError(
+                f"No rows matched only_keys (n={len(only_keys)}). "
+                f"Check group_key spelling or file contents."
+            )
+
+    if args.sample and args.sample > 0 and args.sample < len(rows):
+        rows = rows[: args.sample]
+
+    print(f"[RUN] provider={provider} arm={arm} run_tag={args.run_tag} mode={args.mode}")
+    print(f"[RUN] model_stage1={model_stage1} model_stage2={model_stage2}")
+    print(f"[RUN] S0_SPREAD_MODE={s0_spread_mode} ENTITY_LIST_CAP={entity_list_cap}")
+    print(f"[IN ] {in_path}")
+    print(f"[OUT] {out_path}")
+
+    debug_dir = os.path.join(os.path.dirname(out_path), "debug_raw")
+    _ensure_dir(debug_dir)
+    print(f"[DBG] {debug_dir}")
+
+    n_ok = 0
+    n_fail = 0
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        for row in tqdm(rows, total=len(rows)):
+            rec, err = process_single_group(
+                row,
+                base_dir=base_dir,
+                provider=provider,
+                clients=clients,
+                arm=arm,
+                arm_config=arm_cfg,
+                bundle=bundle,
+                run_tag=args.run_tag,
+                mode=args.mode,
+                model_stage1=model_stage1,
+                model_stage2=model_stage2,
+                temp_stage1=temp_stage1,
+                temp_stage2=temp_stage2,
+                timeout_s=timeout_s,
+                cards_per_entity_default=cards_per_entity_default,
+                s0_spread_mode=s0_spread_mode,
+                entity_list_cap=entity_list_cap,
+                debug_dir=debug_dir,
+            )
+
+            if rec is not None:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                n_ok += 1
+            else:
+                n_fail += 1
+                print(f"❌ group failed: {err}")
+
+    print(f"[DONE] ok={n_ok} fail={n_fail}")
+
+
+if __name__ == "__main__":
+    main()

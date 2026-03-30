@@ -1,0 +1,87 @@
+{
+  "part": {
+    "msk": {
+      "label": "Musculoskeletal radiology",
+      "tag": "part_msk"
+    },
+    "thx": {
+      "label": "Thoracic radiology",
+      "tag": "part_thx"
+    },
+    "abd": {
+      "label": "Abdominal radiology",
+      "tag": "part_abd"
+    },
+    "gu": {
+      "label": "Genitourinary radiology",
+      "tag": "part_gu"
+    },
+    "neuro": {
+      "label": "Neuroradiology",
+      "tag": "part_neuro"
+    },
+    "ped": {
+      "label": "Pediatric radiology",
+      "tag": "part_ped"
+    },
+    "breast": {
+      "label": "Breast radiology",
+      "tag": "part_breast"
+    },
+    "cv": {
+      "label": "Cardiovascular radiology",
+      "tag": "part_cv"
+    },
+    "ir": {
+      "label": "Interventional radiology",
+      "tag": "part_ir"
+    },
+    "nm": {
+      "label": "Nuclear medicine",
+      "tag": "part_nm"
+    }
+  },
+
+  "category": {
+    "anatomy": {
+      "label": "Imaging anatomy",
+      "tag": "cat_anatomy"
+    },
+    "findings": {
+      "label": "Imaging findings",
+      "tag": "cat_findings"
+    },
+    "ddx": {
+      "label": "Differential diagnosis",
+      "tag": "cat_ddx"
+    },
+    "technique": {
+      "label": "Imaging technique",
+      "tag": "cat_technique"
+    },
+    "procedure": {
+      "label": "Procedure / intervention",
+      "tag": "cat_procedure"
+    }
+  },
+
+  "region_examples": {
+    "shoulder": "reg_shoulder",
+    "spine": "reg_spine",
+    "lung": "reg_lung",
+    "mediastinum": "reg_mediastinum",
+    "liver": "reg_liver",
+    "kidney": "reg_kidney",
+    "pelvis": "reg_pelvis",
+    "elbow": "reg_elbow",
+    "hand": "reg_hand",
+    "foot": "reg_foot"
+  },
+
+  "topic_rules": {
+    "rule_1": "Use snake_case",
+    "rule_2": "Keep concise, avoid long phrases",
+    "rule_3": "Derive from Topic_Clean column",
+    "rule_4": "Remove stopwords if too long ('and', 'of', 'the')"
+  }
+}

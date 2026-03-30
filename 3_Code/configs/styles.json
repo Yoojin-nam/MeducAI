@@ -1,0 +1,18 @@
+{
+  "Anatomy": "A highly detailed, professional medical illustration of {keywords}. Labeled diagram style, white background, clean lines, textbook quality, accurate anatomical proportions. 4k resolution.",
+  "Pathology_Gross": "A realistic medical illustration showing the gross pathology of {keywords}. Macro view, educational focus, clear distinction of pathological tissues, neutral background.",
+  "Radiograph": "A simulated high-fidelity medical imaging scan (X-ray/CT/MRI) showing {keywords}. Grayscale, high contrast, radiological standard view, clear pathology indication.",
+  "Histology": "A simulated H&E stained histological slide of {keywords}. Microscopic view, cellular details, pink and purple staining pattern, high magnification.",
+  "Clinical_Photo": "A realistic clinical illustration of a patient presenting with {keywords}. Focus on physical signs, neutral medical setting, educational purpose.",
+  
+  "// --- NEW PHYSICS & QC STYLES ---": "",
+
+  "Physics_Diagram": "A clear, flat 2D educational vector diagram explaining {keywords}. Physics textbook style, white background, distinct arrows representing forces or rays, schematic representation, easy to understand, high contrast.",
+  "Physics_Graph": "A high-quality scientific graph or chart showing {keywords}. Clear X and Y axes, sharp lines, educational context, white background, minimal text clutter.",
+  "Equipment_Structure": "A technical cross-section diagram of {keywords} (e.g., CT gantry, X-ray tube). Engineering schematic style, showing internal components, metallic textures, neutral background.",
+  "Imaging_Artifact": "A simulated medical image (CT/MRI/X-ray) explicitly demonstrating the {keywords} artifact. The image should show the specific noise, streak, or distortion characteristic of this artifact for educational diagnosis.",
+  "MRI_Pulse_Sequence": "A timing diagram of an MRI pulse sequence showing {keywords}. Horizontal time axis, RF pulses, Gradient lines (Gx, Gy, Gz), clear signal evolution, textbook diagram style.",
+  "QC_Phantom": "A high-contrast image of a radiology quality control phantom showing {keywords}. Test pattern style, resolution bars, grayscale gradients, technical reference image.",
+
+  "Default": "A high-quality medical illustration of {keywords}, educational style, white background."
+}

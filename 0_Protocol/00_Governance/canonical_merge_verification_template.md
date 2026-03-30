@@ -20,7 +20,7 @@
   - Entity_Definition_S2_Canonical.md
   - Entity_Definition_S3_Canonical.md
   - ARM_CONFIGS_Provider_Model_Resolution.md
-- **편입 작업자:** 남유진
+- **편입 작업자:** [Study Coordinator]
 - **편입 일시:** 2025-12-17
 - **관련 단계:** ☑ S0 ☑ FINAL
 

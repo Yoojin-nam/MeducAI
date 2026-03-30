@@ -18,5 +18,5 @@ PDF로 변환하는 방법:
 그 다음 위의 방법 1을 따라주세요.
 
 파일 위치:
-  /Users/medipixel/workspace/MeducAI/0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Participants_print.html
+  /path/to/workspace/workspace/MeducAI/0_Protocol/06_QA_and_Study/QA_Operations/FINAL_QA_Evaluation_Guide_for_Participants_print.html
 

@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =========================
+# MeducAI verify_run.sh
+# =========================
+# Usage:
+#   RUN_TAG=XXXX ./verify_run.sh
+#
+# What this checks:
+#   1) Output JSONL exists & valid JSON
+#   2) S1 outputs present (nested schema)
+#   3) S2 produced entities and cards
+#   4) Card schema sanity (text-only)
+#   5) Forbidden keys absence (execution-only)
+#   6) Summary snapshot (group, entities, cards_total)
+#
+# Notes:
+#   - This script assumes current Step01 nested schema:
+#     curriculum_content / metadata / source_info / meta
+#   - Allocation is NOT required for this verification.
+# =========================
+
+if [[ -z "${RUN_TAG:-}" ]]; then
+  echo "FAIL: RUN_TAG is not set"
+  echo "Usage: RUN_TAG=XXXX ./verify_run.sh"
+  exit 1
+fi
+
+OUT="2_Data/metadata/generated/${RUN_TAG}/output_gemini_${RUN_TAG}__armA.jsonl"
+
+echo "== MeducAI verify_run =="
+echo "RUN_TAG: ${RUN_TAG}"
+echo "OUT: ${OUT}"
+echo
+
+# 0) File existence
+test -s "$OUT" && echo "OK: output exists" || { echo "FAIL: output missing"; exit 1; }
+
+# 1) JSON validity
+jq . "$OUT" >/dev/null && echo "OK: valid JSON" || { echo "FAIL: invalid JSON"; exit 1; }
+
+echo
+echo "-- Top-level keys --"
+jq 'keys' "$OUT"
+echo
+
+# 2) S1 outputs (nested schema)
+jq -e '
+  .metadata.id
+  and .source_info.group_path
+  and (.curriculum_content.visual_type | type=="string" and length>0)
+  and (.curriculum_content.master_table | type=="string" and length>0)
+  and (.curriculum_content.table_infographic.prompt_en | type=="string" and length>0)
+' "$OUT" >/dev/null \
+&& echo "OK: S1 outputs present" \
+|| { echo "FAIL: S1 outputs missing"; exit 1; }
+
+# 3) S2 entities existence
+jq -e '
+  (.curriculum_content.entities | type=="array" and length>0)
+' "$OUT" >/dev/null \
+&& echo "OK: S2 produced entities" \
+|| { echo "FAIL: no entities from S2"; exit 1; }
+
+# 4) Each entity has cards
+jq -e '
+  (.curriculum_content.entities | all(
+    (.entity_name | type=="string" and length>0)
+    and (.anki_cards | type=="array" and length>0)
+  ))
+' "$OUT" >/dev/null \
+&& echo "OK: each entity has cards" \
+|| { echo "FAIL: some entity missing cards"; exit 1; }
+
+# 5) Card schema sanity (text-only)
+jq -e '
+  .curriculum_content.entities[].anki_cards[]
+  | has("card_type") and has("front") and has("back") and has("tags")
+' "$OUT" >/dev/null \
+&& echo "OK: card schema ok (text-only)" \
+|| { echo "FAIL: card schema unexpected"; exit 1; }
+
+# 6) Forbidden keys absence (policy leakage guard)
+jq -e '
+  [ .curriculum_content.entities[] | keys[] ]
+  | any(.=="importance_score" or startswith("row_image_"))
+  | not
+' "$OUT" >/dev/null \
+&& echo "OK: no forbidden entity keys" \
+|| { echo "FAIL: forbidden keys detected"; exit 1; }
+
+echo
+echo "-- Snapshot --"
+jq '{
+  gid: .metadata.id,
+  group_path: .source_info.group_path,
+  visual_type: .curriculum_content.visual_type,
+  entities: (.curriculum_content.entities | length),
+  cards_total: ([.curriculum_content.entities[].anki_cards | length] | add)
+}' "$OUT"
+
+echo
+echo "== VERIFY PASS =="
