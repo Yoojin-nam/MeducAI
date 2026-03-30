@@ -112,26 +112,26 @@ This README is written for the following audiences:
 ## 8. Update Log
 
 > 💡 Update Log (Latest: v1.3)
-실시간 업데이트 내역입니다. 최신 버전의 자료를 확인해 주세요.
+Live update history. Please refer to the latest version of the materials.
 
 - **v1.3.1 (Current)** `2026/01/09`
-    - **[정리]** Repository 구조 통합 및 정리 (Translation workflow 완료, Paper 3 communications 분리)
-    - 번역 워크플로우 스크립트 아카이브 (`3_Code/archived/translation_workflow_2026-01-07/`)
-    - Paper 3 커뮤니케이션 문서 분리 (`0_Protocol/06_QA_and_Study/Communications/`)
-    - Handoff 문서 README 추가 (3개 위치)
-    - S5/S6 파이프라인 단계 추가
+    - **[Organization]** Repository structure consolidated and cleaned up (translation workflow completed; Paper 3 communications separated)
+    - Translation workflow scripts archived (`3_Code/archived/translation_workflow_2026-01-07/`)
+    - Paper 3 communication documents separated (`0_Protocol/06_QA_and_Study/Communications/`)
+    - README files added to three handoff document locations
+    - S5/S6 pipeline stages added
 - **v1.3** `2026/01/08`
-    - **[추가]** 프린팅용 PDF 파일 추가 (4권 분권, 인쇄 주문 안내 포함)
-    - 인쇄 주문 시 사용할 수 있는 분권된 PDF 파일 제공
-    - 각 권별 표지, 페이지 수, 포함 전문의 정보 제공
-    - 자세한 인쇄 주문 방법은 `6_Distributions/MeducAI_Final_Share/PDF/print_ready/README.md` 참고
+    - **[Added]** Print-ready PDF files added (4-volume split set, including print-ordering guidance)
+    - Split PDF files prepared for print ordering
+    - Cover design, page counts, and included specialist information provided for each volume
+    - See `6_Distributions/MeducAI_Final_Share/PDF/print_ready/README.md` for detailed print-order instructions
 - **v1.2** `2025/01/08 01:00`
-    - **[개선]** Anki 덱 내 의학용어 표기 방식을 **영어 단독(English Only)**으로 변경 (혼동 방지 및 전문성 강화)
+    - **[Improved]** Medical terminology in the Anki deck changed to **English only** for clarity and professional consistency
 - **v1.1** `2025/01/07 13:00`
-    - **[수정]** PDF 페이지 순서 재정렬
-    - **[UI]** Anki 덱 카드 내 줄바꿈(Layout) 가독성 개선
+    - **[Updated]** PDF page order rearranged
+    - **[UI]** Improved line breaks and layout readability in Anki deck cards
 - **v1.0** `2025/01/07 12:00`
-    - 최초 배포 (Initial Release)
+    - Initial release
 
 ---
 
@@ -139,28 +139,28 @@ This README is written for the following audiences:
 
 ### 3-Paper Research Portfolio Consolidation (2026-01-04)
 
-**연구 체계 정비:**
-- ✅ 3-Paper 연구 포트폴리오 구조 확립
-- ✅ Study_Design.md v5.0 업데이트 (3-Paper 체계)
-- ✅ MeducAI_3Paper_Research_Index.md 마스터 인덱스 생성
-- ✅ Visual Modality Sub-study 확장 (전공의 Realistic 평가 추가)
-- ✅ Table Infographic Evaluation Plan 생성 (5명 평가자 설계)
+**Research portfolio consolidation:**
+- ✅ Established a 3-paper research portfolio structure
+- ✅ Updated `Study_Design.md` to v5.0 for the 3-paper framework
+- ✅ Created the `MeducAI_3Paper_Research_Index.md` master index
+- ✅ Expanded the Visual Modality Sub-study to include resident realistic-image evaluation
+- ✅ Created the Table Infographic Evaluation Plan with a 5-rater design
 
-**3-Paper 구조:**
+**3-paper structure:**
 
-| Paper | 제목 | 데이터 소스 |
+| Paper | Title | Data source |
 |-------|------|-------------|
-| Paper 1 | S5 Multi-agent 검토 재작성 시스템의 신뢰도 | FINAL QA (1,350 Resident + 330 Specialist) |
-| Paper 2 | MLLM 생성 이미지의 신뢰도 | Visual Modality Sub-study + Table Infographic |
-| Paper 3 | 교육효과 전향적 관찰연구 | Baseline + FINAL 설문 (IRB 승인) |
+| Paper 1 | Reliability of the S5 multi-agent review and rewriting system | FINAL QA (1,350 resident + 330 specialist evaluations) |
+| Paper 2 | Reliability of MLLM-generated images | Visual Modality Sub-study + Table Infographic |
+| Paper 3 | Prospective observational study of educational effectiveness | Baseline + FINAL survey (IRB-approved) |
 
-**문서 정리:**
-- 91개 운영/임시 문서 아카이브 (HANDOFF, S0_QA, AppSheet 설정 등)
-- 핵심 Canonical 문서만 유지
-- DOCS_REGISTRY.md에 논문별 문서 가이드 추가
+**Document organization:**
+- 91 operational and temporary documents archived (HANDOFF, S0_QA, AppSheet configuration, etc.)
+- Only core canonical documents retained
+- Paper-specific document guidance added to `DOCS_REGISTRY.md`
 
-**핵심 문서:**
-- `0_Protocol/06_QA_and_Study/MeducAI_3Paper_Research_Index.md` (마스터 인덱스)
+**Key documents:**
+- `0_Protocol/06_QA_and_Study/MeducAI_3Paper_Research_Index.md` (master index)
 - `0_Protocol/06_QA_and_Study/Paper3_Educational_Effectiveness/Paper3_Study_Design.md`
 - `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/Paper1_Paper2_Research_Design_Spec.md`
 - `0_Protocol/06_QA_and_Study/Paper2_Image_Reliability/Paper2_Table_Infographic_Evaluation_Design.md`
@@ -338,7 +338,7 @@ MeducAI/
 └── 6_Distributions/             # QA Packages (Blinded/Unblinded)
     └── MeducAI_Final_Share/
         └── PDF/
-            └── print_ready/     # 프린팅용 PDF (4권 분권, 인쇄 주문 안내 포함)
+            └── print_ready/     # print-ready PDFs (4-volume split set with ordering guide)
 ```
 
 ---
@@ -388,32 +388,32 @@ MeducAI/
 
 ### For QA and Study Design
 
-- `0_Protocol/06_QA_and_Study/MeducAI_3Paper_Research_Index.md` - 3-Paper 연구 마스터 인덱스
+- `0_Protocol/06_QA_and_Study/MeducAI_3Paper_Research_Index.md` - master index for the 3-paper research program
 - `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/QA_Framework.md` - QA framework
-- `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/Paper1_Paper2_Research_Design_Spec.md` - Paper 1+2 연구 설계
-- `0_Protocol/06_QA_and_Study/Paper3_Educational_Effectiveness/Paper3_Study_Design.md` - Paper 3 연구 설계
+- `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/Paper1_Paper2_Research_Design_Spec.md` - research design for Papers 1 and 2
+- `0_Protocol/06_QA_and_Study/Paper3_Educational_Effectiveness/Paper3_Study_Design.md` - research design for Paper 3
 
 ### For Printing and Distribution
 
-- `6_Distributions/MeducAI_Final_Share/PDF/print_ready/` - 프린팅용 PDF (4권 분권)
-    - 인쇄 주문 시 사용할 수 있는 분권된 PDF 파일
-    - 각 권별 표지, 페이지 수, 포함 전문의 정보 제공
-    - 상세한 인쇄 주문 방법 및 메일 템플릿 포함
-    - 자세한 내용은 `print_ready/README.md` 참고
+- `6_Distributions/MeducAI_Final_Share/PDF/print_ready/` - print-ready PDFs (4-volume split set)
+    - Split PDF files for print ordering
+    - Cover design, page counts, and included specialist information for each volume
+    - Detailed print-order instructions and email templates
+    - See `print_ready/README.md` for details
 
 ### For Research Papers
 
-**Paper 1 (S5 Multi-agent 신뢰도):**
+**Paper 1 (S5 multi-agent reliability):**
 - `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/Paper1_Paper2_Research_Design_Spec.md`
 - `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/Paper1_QA_Endpoints_Definition.md`
 - `0_Protocol/05_Pipeline_and_Execution/S5_Decision_Definition_Canonical.md`
 
-**Paper 2 (MLLM 이미지 신뢰도):**
+**Paper 2 (MLLM image reliability):**
 - `0_Protocol/06_QA_and_Study/Paper1_S5_Validation/Paper1_Paper2_Research_Design_Spec.md` (Section 8: Visual Modality)
 - `0_Protocol/06_QA_and_Study/Paper2_Image_Reliability/Paper2_Table_Infographic_Evaluation_Design.md`
 - `0_Protocol/06_QA_and_Study/Paper2_Image_Reliability/Paper2_Visual_Turing_Test_Design_Detailed.md`
 
-**Paper 3 (교육효과 전향적 연구):**
+**Paper 3 (prospective educational-effectiveness study):**
 - `0_Protocol/06_QA_and_Study/Paper3_Educational_Effectiveness/Paper3_Study_Design.md`
 - `0_Protocol/06_QA_and_Study/Paper3_Educational_Effectiveness/Paper3_Survey_Overview.md`
 - `0_Protocol/06_QA_and_Study/Paper3_Educational_Effectiveness/Paper3_Statistical_Analysis_Plan.md`
