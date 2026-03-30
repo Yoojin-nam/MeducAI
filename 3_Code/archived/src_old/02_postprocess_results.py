@@ -556,7 +556,7 @@ grep "Arm '{arm_val}' uses" 3_Code/src/02_postprocess_results.py
 echo "--- 🛠️ Re-Running Step 02 for Arm F (Testing Auto-Provider Check) ---"
 # 💡 실제 사용된 RUN_TAG를 여기에 고정 (로그에 기반)
 RUN_TAG="S0_SMOKE_20251215_144054" 
-BASE_DIR="/path/to/workspace/Library/CloudStorage/GoogleDrive-eugene8998@gmail.com/내 드라이브/Research/MeducAI"
+BASE_DIR="/path/to/workspace/Library/CloudStorage/GoogleDrive-[email-redacted]/내 드라이브/Research/MeducAI"
 
 /path/to/workspace/meducai_venv/bin/python3 3_Code/src/02_postprocess_results.py \
   --provider gemini \

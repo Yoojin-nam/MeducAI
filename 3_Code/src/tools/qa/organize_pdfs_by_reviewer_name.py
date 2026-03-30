@@ -283,7 +283,7 @@ def organize_pdfs_by_reviewer_name(
     
     Creates folders like:
         by_reviewer_name/
-            김동영/
+            Reviewer_11/
                 Q01.pdf
                 Q02.pdf
                 ...

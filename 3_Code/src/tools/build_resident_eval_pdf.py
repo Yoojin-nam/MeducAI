@@ -13,11 +13,11 @@ Usage:
 
 Output:
     6_Distributions/Final_QA/Resident_Eval_Packets/
-        김동영/
+        Reviewer_11/
             grp_XXXX.pdf
             grp_YYYY.pdf
             ...
-        박준형/
+        Reviewer_12/
             ...
 """
 
