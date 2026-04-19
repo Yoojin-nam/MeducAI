@@ -2,6 +2,37 @@
 
 **A Governed, Reproducible Pipeline for LLM-Generated Radiology Learning Content**
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.3.1-green.svg)](https://github.com/Yoojin-nam/MeducAI/releases)
+[![Citation](https://img.shields.io/badge/citation-CFF-orange.svg)](CITATION.cff)
+
+---
+
+## For Peer Reviewers and Editors
+
+This repository accompanies two manuscripts currently under peer review:
+
+| Paper | Topic | Journal | Status |
+|-------|-------|---------|--------|
+| **Paper 1** | Sequential Validation Pipeline (S0–S6, FINAL) | *The Lancet Digital Health* | Under review (THELANCET-D-26-02677) |
+| **Paper 3** | Educational Effectiveness Pilot Study | *BMC Medical Education* | Under review (Submission ID `dbe78471-7065-4c3e-811b-3c71417bb4e1`) |
+
+**Where to start (5-minute orientation):**
+
+1. **Paper 1 reviewers** → read `0_Protocol/05_Pipeline_and_Execution/Pipeline_Canonical_Specification.md`, then browse `3_Code/src/` for the S0–FINAL stage implementations and `3_Code/prompt/_registry.json` for prompt versioning.
+2. **Paper 3 reviewers** → read `0_Protocol/06_Research/Paper3_Educational_Effectiveness/` for the pilot design, and `4_Instruments/` for the survey instruments (cognitive load and self-efficacy scales).
+3. **Reproducibility audit** → all canonical decisions (card counts, allocation policies, fail-fast rules) live in `0_Protocol/`, never in code. The version frozen for both papers is **v1.3.1** (see [CITATION.cff](CITATION.cff)).
+
+**Intentionally not in this repository (de-identified by design):**
+
+- Participant-level survey responses, distribution rosters, or any PHI (kept in IRB-secured storage at the corresponding institution)
+- Manuscript drafts and reviewer-confidential materials
+- Internal meeting notes and personnel deliberations
+
+Reviewers requiring access to de-identified primary data may contact the corresponding author (Namkug Kim, MD, PhD — namkugkim@gmail.com) under the Data Availability statement of each manuscript.
+
+**License:** Apache-2.0 (see [LICENSE](LICENSE)). Citation metadata: [CITATION.cff](CITATION.cff).
+
 ---
 
 ## 1. What is MeducAI? (One-paragraph summary)
