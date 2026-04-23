@@ -106,7 +106,7 @@
 - 핵심 독자: 의료교육, 디지털 학습, 교육평가(설문+로그)
 - **1순위 후보:**
   - **JMIR Medical Education:** 기술·혁신·e-learning/virtual training 등 의료교육 기술 평가를 정면으로 받는 저널. 현재 연구 디자인(설문+사용 로그)과 매우 정합적
-  - **BMC Medical Education:** 보건의료인 교육 전반을 폭넓게 수용. 단일기관, 80명 규모의 관찰 연구도 구조만 탄탄하면 무난하게 타겟이 됨
+  - **[target journal]:** 보건의료인 교육 전반을 폭넓게 수용. 단일기관, 80명 규모의 관찰 연구도 구조만 탄탄하면 무난하게 타겟이 됨
 
 #### 파이프라인 통합 시
 - **Radiology (통합 출간 가능성):**
@@ -190,7 +190,7 @@
 - 텍스트 중심(표 1개 권장)
 - **파이프라인 분리 시:**
   - **Paper A:** Radiology: Artificial Intelligence (RSNA), European Journal of Radiology Artificial Intelligence
-  - **Paper B:** JMIR Medical Education, BMC Medical Education
+  - **Paper B:** JMIR Medical Education, [target journal]
 - **파이프라인 통합 시:** Radiology (RCT 급 시험 점수 상승 데이터 필요, 현재는 현실적으로 불가능)
 - 선정 기준 4~6개를 짧게: 스코프, 방법론 기여, 예상 심사 기간, OA/비용, 허용 형식
 - 노트에는: 오늘 '1순위/2순위 shortlist 확정'까지만, 다음 액션(가이드라인 확인/투고 형식) 오너 지정, 통합 시 추후 가능성 언급

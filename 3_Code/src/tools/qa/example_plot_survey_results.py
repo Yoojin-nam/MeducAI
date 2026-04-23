@@ -1,5 +1,5 @@
 """
-Example NPJ Digital Medicine Plotting Script
+Example [target journal] Plotting Script
 
 This script demonstrates how to generate publication-quality figures 
 from QA Survey data (Paper 1 / Paper 3) using the custom MeducAI NPJ Theme.
@@ -17,7 +17,7 @@ import os
 from src.tools.meducai_plot_theme import apply_npj_theme, NPJ_PALETTE
 
 def plot_mock_survey_results():
-    # 1. Apply the strict NPJ Digital Medicine Theme (Single column = 89mm width)
+    # 1. Apply the strict [target journal] Theme (Single column = 89mm width)
     apply_npj_theme(fig_type='single')
     
     # 2. Mock Data generation (Simulating S5 Multi-agent Validation scores)

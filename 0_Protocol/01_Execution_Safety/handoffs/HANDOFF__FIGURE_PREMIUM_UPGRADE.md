@@ -1,14 +1,14 @@
-# HANDOFF: Premium Figure Upgrade (npj Digital Medicine)
+# HANDOFF: Premium Figure Upgrade ([target journal])
 
 **Date**: 2026-03-30
 **Target Agents**: Claude Code (Manuscript Writer/Data Analyst)
-**Objective**: Ensure all generated figures for Paper 1, Paper 2, and Paper 3 comply strictly with **Nature Portfolio (npj Digital Medicine)** submission standards.
+**Objective**: Ensure all generated figures for Paper 1, Paper 2, and Paper 3 comply strictly with **Nature Portfolio ([target journal])** submission standards.
 
 ---
 
 ## 1. Context & Motivation
 
-We are preparing to submit the MeducAI manuscript(s) to *npj Digital Medicine*. Because Nature Portfolio has extremely strict artwork and visualization requirements, we have completely overhauled the project's figure generation ecosystem. You (the agent) must utilize these new assets whenever you assist the user in drafting the manuscript, analyzing clinical statistics, or updating the S0-S6 architecture diagrams.
+We are preparing to submit the MeducAI manuscript(s) to *[target journal]*. Because Nature Portfolio has extremely strict artwork and visualization requirements, we have completely overhauled the project's figure generation ecosystem. You (the agent) must utilize these new assets whenever you assist the user in drafting the manuscript, analyzing clinical statistics, or updating the S0-S6 architecture diagrams.
 
 ## 2. Implemented Assets & Your Guidelines
 

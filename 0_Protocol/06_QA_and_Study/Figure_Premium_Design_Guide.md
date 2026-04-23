@@ -1,11 +1,11 @@
-# npj Digital Medicine (Nature Portfolio) Flowchart & Diagram Design Guide
+# [target journal] (Nature Portfolio) Flowchart & Diagram Design Guide
 
 **Target Scope:** Paper 1, 2, 3 Architecture figures, S0-S6 Pipeline Diagrams, CONSORT Patient flowcharts.
-**Goal:** Align all diagrammatic assets perfectly with **npj Digital Medicine** artwork and formatting guidelines.
+**Goal:** Align all diagrammatic assets perfectly with **[target journal]** artwork and formatting guidelines.
 
 ## 1. Nature Portfolio Tooling & Formatting Requirements
 *   **Format:** Export final diagrams as **PDF or EPS** (Vector formats are required for flowcharts). JPEG/PNG are only for photographs/scans, not node diagrams.
-*   **Color Profile:** sRGB is preferred for npj Digital Medicine (being an online-only journal), but CMYK conversion-safe palettes are best.
+*   **Color Profile:** sRGB is preferred for [target journal] (being an online-only journal), but CMYK conversion-safe palettes are best.
 *   **Width:** 
     *   Single-column figure: **89 mm** (max).
     *   Two-column figure: **183 mm** (max).

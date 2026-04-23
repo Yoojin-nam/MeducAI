@@ -227,7 +227,7 @@
 - **낮음**: Missing data, Power
 
 **권장 전략:**
-1. **보수적 저널 선택**: BMC Medical Education 등 (RCT 요구 덜함)
+1. **보수적 저널 선택**: [target journal] 등 (RCT 요구 덜함)
 2. **Observational design 정당화 강화**: 실용성, 윤리적 고려
 3. **Causal inference language 회피**: "Association" 강조, "Causation" 회피
 
@@ -246,7 +246,7 @@
 **예상 결과:**
 - **Accept 확률**: 90-95%
 - **Revision 라운드**: 1-2라운드
-- **저널**: npj Digital Medicine, JMIR 등
+- **저널**: [target journal], JMIR 등
 
 ---
 
@@ -261,7 +261,7 @@
 **예상 결과:**
 - **Accept 확률**: 75-85%
 - **Revision 라운드**: 2-3라운드
-- **저널**: Medical Image Analysis, npj Digital Medicine
+- **저널**: Medical Image Analysis, [target journal]
 
 **리스크 관리:**
 - Table Infographic이 문제될 경우, "pilot evaluation"으로 재정의 가능
@@ -276,12 +276,12 @@
 - ✅ **Objective validation (Anki logs) 필수**
 - ✅ **Multiple imputation + MNAR sensitivity**
 - ⚠️ **Observational design 정당화 강화**
-- ⚠️ **보수적 저널 선택 (BMC Medical Education 등)**
+- ⚠️ **보수적 저널 선택 ([target journal] 등)**
 
 **예상 결과:**
 - **Accept 확률**: 60-75%
 - **Revision 라운드**: 3-4라운드 (또는 Reject 후 재투고)
-- **저널**: BMC Medical Education, Medical Teacher (RCT 요구 덜함)
+- **저널**: [target journal], Medical Teacher (RCT 요구 덜함)
 
 **리스크 관리:**
 - **RCT 요구 시**: "실용적 고려사항", "윤리적 제약" 정당화

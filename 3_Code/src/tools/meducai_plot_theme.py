@@ -1,8 +1,8 @@
 """
-MeducAI Premium Plot Theme (npj Digital Medicine Journal Quality)
+MeducAI Premium Plot Theme ([target journal] Journal Quality)
 
 This module sets up Matplotlib and Seaborn configurations specifically tailored for
-Nature Portfolio (npj Digital Medicine) submission standards.
+Nature Portfolio ([target journal]) submission standards.
 
 Nature Portfolio guidelines:
 - Typography: Sans-serif (Arial or Helvetica)
@@ -18,7 +18,7 @@ Usage:
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# NPJ Digital Medicine Recommended Color Palette (Nature style, colorblind safe)
+# [target journal] Recommended Color Palette (Nature style, colorblind safe)
 NPJ_PALETTE = {
     'primary_blue': '#0072B2',    # Colorblind safe blue
     'secondary_teal': '#009E73',  # Colorblind safe bluish green
@@ -101,12 +101,12 @@ def apply_npj_theme(fig_type='single', base_context='paper'):
     }
     
     plt.rcParams.update(custom_params)
-    print(f"✅ npj Digital Medicine Plot Theme ('{fig_type}' column) applied.")
+    print(f"✅ [target journal] Plot Theme ('{fig_type}' column) applied.")
 if __name__ == "__main__":
     apply_npj_theme()
     # Demo plot
     sns.barplot(x=['Control', 'Treatment A', 'Treatment B'], y=[10, 20, 15])
-    plt.title("npj Digital Medicine Sample Theme")
+    plt.title("[target journal] Sample Theme")
     plt.xlabel("Groups")
     plt.ylabel("Scores")
     plt.tight_layout()

@@ -22,7 +22,7 @@
 #### Tier 1 (High Impact, Competitive)
 | 저널 | IF (2024 추정) | 특성 | 적합도 |
 |------|---------------|------|--------|
-| **npj Digital Medicine** | ~12.0 | Nature 계열, 디지털 의료 검증 | ⭐⭐⭐⭐⭐ |
+| **[target journal]** | ~12.0 | Nature 계열, 디지털 의료 검증 | ⭐⭐⭐⭐⭐ |
 | **Journal of Medical Internet Research (JMIR)** | ~7.1 | 의료 AI 검증 연구, 오픈 액세스 | ⭐⭐⭐⭐⭐ |
 | **Artificial Intelligence in Medicine** | ~7.5 | 의료 AI 방법론/검증 | ⭐⭐⭐⭐ |
 | **Medical Image Analysis** | ~11.8 | 의료 영상 분석 최상위, AI 검증 | ⭐⭐⭐⭐ |
@@ -42,7 +42,7 @@
 | **Scientific Reports** | ~4.4 | Nature 계열, 넓은 범위 | ⭐⭐⭐ |
 
 ### 추천 전략
-1. **1차 목표**: npj Digital Medicine (Nature 계열, 높은 IF, 디지털 의료 검증)
+1. **1차 목표**: [target journal] (Nature 계열, 높은 IF, 디지털 의료 검증)
 2. **2차 목표**: Journal of Medical Internet Research (의료 AI 검증 연구, 빠른 출판, 오픈 액세스)
 3. **3차 목표**: Journal of Digital Imaging (의료 영상 AI 검증, 안정적)
 
@@ -67,7 +67,7 @@
 | 저널 | IF (2024 추정) | 특성 | 적합도 |
 |------|---------------|------|--------|
 | **Medical Image Analysis** | ~11.8 | 의료 영상 분석 최상위, 생성 모델 검증 | ⭐⭐⭐⭐⭐ |
-| **npj Digital Medicine** | ~12.0 | Nature 계열, 디지털 의료, 생성 AI 검증 | ⭐⭐⭐⭐⭐ |
+| **[target journal]** | ~12.0 | Nature 계열, 디지털 의료, 생성 AI 검증 | ⭐⭐⭐⭐⭐ |
 | **IEEE Transactions on Medical Imaging** | ~11.0 | 의료 영상 기술, 생성 모델 검증 | ⭐⭐⭐⭐ |
 | **Artificial Intelligence in Medicine** | ~7.5 | 의료 AI, 생성 모델 검증 | ⭐⭐⭐⭐ |
 
@@ -87,7 +87,7 @@
 
 ### 추천 전략
 1. **1차 목표**: Medical Image Analysis (의료 영상 분석 최상위, 생성 모델 검증, 높은 IF)
-2. **2차 목표**: npj Digital Medicine (Nature 계열, 디지털 의료, 생성 AI 검증)
+2. **2차 목표**: [target journal] (Nature 계열, 디지털 의료, 생성 AI 검증)
 3. **3차 목표**: Journal of Digital Imaging (의료 영상 AI, 빠른 출판, 안정적)
 
 ### 투고 시기
@@ -116,14 +116,14 @@
 |------|---------------|------|--------|
 | **Medical Education** | ~6.0 | 의학교육 최상위, 교육 효과 연구 | ⭐⭐⭐⭐⭐ |
 | **Academic Medicine** | ~7.5 | 의학교육 최상위, 혁신적 교육 방법 | ⭐⭐⭐⭐⭐ |
-| **BMC Medical Education** | ~3.6 | 의학교육, 오픈 액세스, 빠른 출판 | ⭐⭐⭐⭐⭐ |
+| **[target journal]** | ~3.6 | 의학교육, 오픈 액세스, 빠른 출판 | ⭐⭐⭐⭐⭐ |
 | **Medical Teacher** | ~4.3 | 의학교육, 교육 기술 연구 | ⭐⭐⭐⭐ |
 
 #### Tier 2 (Specialized, Strong Fit)
 | 저널 | IF (2024 추정) | 특성 | 적합도 |
 |------|---------------|------|--------|
 | **Journal of Medical Internet Research (JMIR)** | ~7.1 | 디지털 의료 교육, 오픈 액세스 | ⭐⭐⭐⭐⭐ |
-| **npj Digital Medicine** | ~12.0 | Nature 계열, 디지털 의료, 교육 효과 | ⭐⭐⭐⭐ |
+| **[target journal]** | ~12.0 | Nature 계열, 디지털 의료, 교육 효과 | ⭐⭐⭐⭐ |
 | **Medical Teacher** | ~4.3 | 의학교육, 교육 기술 연구 | ⭐⭐⭐⭐ |
 | **Education for Health** | ~1.5 | 의료 교육, 교육 효과 연구 | ⭐⭐⭐ |
 
@@ -134,7 +134,7 @@
 | **BMC Medical Informatics and Decision Making** | ~3.5 | 의료 정보학, 교육 효과 | ⭐⭐⭐ |
 
 ### 추천 전략
-1. **1차 목표**: BMC Medical Education (의학교육, 오픈 액세스, 빠른 출판, 높은 적합도)
+1. **1차 목표**: [target journal] (의학교육, 오픈 액세스, 빠른 출판, 높은 적합도)
 2. **2차 목표**: Journal of Medical Internet Research (디지털 의료 교육, 오픈 액세스, 높은 IF)
 3. **3차 목표**: Medical Teacher (의학교육, 교육 기술 연구, 안정적)
 
@@ -149,17 +149,17 @@
 ### 저널 선택 우선순위
 
 #### Paper 1 (QA 신뢰도)
-1. **npj Digital Medicine** (최우선 - Nature 계열, 높은 IF)
+1. **[target journal]** (최우선 - Nature 계열, 높은 IF)
 2. **Journal of Medical Internet Research** (2차 - 의료 AI 검증, 오픈 액세스)
 3. **Journal of Digital Imaging** (3차 - 의료 영상 AI 검증)
 
 #### Paper 2 (이미지 신뢰도)
 1. **Medical Image Analysis** (최우선 - 의료 영상 분석 최상위, 높은 IF)
-2. **npj Digital Medicine** (2차 - Nature 계열, 디지털 의료)
+2. **[target journal]** (2차 - Nature 계열, 디지털 의료)
 3. **Journal of Digital Imaging** (3차 - 의료 영상 AI, 빠른 출판)
 
 #### Paper 3 (교육 효과)
-1. **BMC Medical Education** (최우선 - 의학교육, 오픈 액세스, 빠른 출판)
+1. **[target journal]** (최우선 - 의학교육, 오픈 액세스, 빠른 출판)
 2. **Journal of Medical Internet Research** (2차 - 디지털 의료 교육, 높은 IF)
 3. **Medical Teacher** (3차 - 의학교육, 교육 기술 연구)
 
@@ -168,7 +168,7 @@
 1. **의료 AI/디지털 의료 저널 우선**
    - Paper 1, 2는 의료 AI 검증 연구
    - Paper 3는 디지털 의료 교육 효과 연구
-   - npj Digital Medicine, JMIR 등이 적합
+   - [target journal], JMIR 등이 적합
 
 2. **오픈 액세스 고려**
    - JMIR, BMC 계열: 빠른 출판, 넓은 가시성
@@ -184,18 +184,18 @@
 
 5. **Radiology 계열 제외**
    - 공동 교신저자 고려로 Radiology 계열 저널 제외
-   - 대안: npj Digital Medicine, JMIR, Medical Image Analysis 등
+   - 대안: [target journal], JMIR, Medical Image Analysis 등
 
 ### 예상 타임라인
 
 ```
 2026년 1월: Paper 1 데이터 수집 완료
 2026년 2월: Paper 1 분석 완료
-2026년 3월: Paper 1 투고 (npj Digital Medicine 또는 JMIR)
+2026년 3월: Paper 1 투고 ([target journal] 또는 JMIR)
            Paper 2 데이터 수집 완료
-2026년 4월: Paper 2 분석 완료, 투고 (Medical Image Analysis 또는 npj Digital Medicine)
+2026년 4월: Paper 2 분석 완료, 투고 (Medical Image Analysis 또는 [target journal])
            Paper 3 데이터 수집 완료
-2026년 5월: Paper 3 분석 완료, 투고 (BMC Medical Education 또는 JMIR)
+2026년 5월: Paper 3 분석 완료, 투고 ([target journal] 또는 JMIR)
 2026년 6-7월: 리뷰 응답 및 수정
 2026년 8-9월: 출간 예상
 ```
@@ -218,11 +218,11 @@
 
 | 저널 | 강점 | 약점 | 추천 논문 |
 |------|------|------|-----------|
-| npj Digital Medicine | Nature 계열, 높은 IF, 디지털 의료 | 경쟁 치열 | Paper 1, 2 |
+| [target journal] | Nature 계열, 높은 IF, 디지털 의료 | 경쟁 치열 | Paper 1, 2 |
 | Medical Image Analysis | 의료 영상 최상위, 높은 IF | 경쟁 치열 | Paper 2 |
 | JMIR | 빠른 출판, 오픈 액세스, 높은 IF | - | Paper 1, 2, 3 |
 | Journal of Digital Imaging | 의료 영상 AI, 안정적 | IF 중간 | Paper 1, 2 |
-| BMC Medical Education | 의학교육, 오픈 액세스, 빠른 출판 | IF 중간 | Paper 3 |
+| [target journal] | 의학교육, 오픈 액세스, 빠른 출판 | IF 중간 | Paper 3 |
 
 ---
 

@@ -11,7 +11,7 @@
 
 | Paper | Target Journal (1st) | Target Journal (Safe) | Core Selling Point (The "Hook") |
 | :--- | :--- | :--- | :--- |
-| **Paper 1**<br>(S5 Agent) | **Radiology: AI**<br>*(or npj Digital Medicine)* | *J Digital Imaging* | **"AI Supervising AI"**<br>- 6,000장 규모 검증 자동화 & 거버넌스<br>- Human-level performance (Non-inferiority)<br>- **New:** 실제 전문의 시험 문제 검증(External Validation) 추가 |
+| **Paper 1**<br>(S5 Agent) | **Radiology: AI**<br>*(or [target journal])* | *J Digital Imaging* | **"AI Supervising AI"**<br>- 6,000장 규모 검증 자동화 & 거버넌스<br>- Human-level performance (Non-inferiority)<br>- **New:** 실제 전문의 시험 문제 검증(External Validation) 추가 |
 | **Paper 2**<br>(Visual) | **Radiology (RSNA)**<br>*(Reject시 Rad:AI Transfer)* | *Academic Radiology* | **"The Visual Turing Test"**<br>- Privacy-free/Copyright-free Medical Imaging<br>- 전문가와 전공의 집단도 구분 못한(Indistinguishable) 퀄리티<br>- 생성형 AI의 해부학적 정확성 정량화 |
 | **Paper 3**<br>(Edu UX) | **Academic Radiology**<br>*(or Medical Teacher)* | *BMC Med Educ* | **"Real-world Implementation & Acceptance"**<br>- (로그 부재 대안) Mixed Methods 접근<br>- 단순 성적보다 **심리적 변화(Cognitive Load, Self-efficacy)** 및 **수용성(TAM)** 강조<br>- 실제 시험 준비(High-stakes) 맥락의 질적 분석 |
 

@@ -12,10 +12,10 @@
 
 This repository accompanies two manuscripts currently under peer review:
 
-| Paper | Topic | Journal | Status |
-|-------|-------|---------|--------|
-| **Paper 1** | Sequential Validation Pipeline (S0–S6, FINAL) | *The Lancet Digital Health* | Under review (THELANCET-D-26-02677) |
-| **Paper 3** | Educational Effectiveness Pilot Study | *BMC Medical Education* | Under review (Submission ID `dbe78471-7065-4c3e-811b-3c71417bb4e1`) |
+| Paper | Topic | Status |
+|-------|-------|--------|
+| **Paper 1** | Sequential Validation Pipeline (S0–S6, FINAL) | Under review |
+| **Paper 3** | Educational Effectiveness Pilot Study | Under review |
 
 **Where to start (5-minute orientation):**
 

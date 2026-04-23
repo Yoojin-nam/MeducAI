@@ -354,12 +354,12 @@ Paper 3 as users. This is acceptable because:
 ### 7.2 저널별 최소 요구사항
 
 **보수적 저널 (Pilot study 수용):**
-- BMC Medical Education, PLOS ONE, Medical Teacher
+- [target journal], PLOS ONE, Medical Teacher
 - 최소: n=80명 가능
 - Accept 가능성: 50-75%
 
 **표준 저널:**
-- JMIR, npj Digital Medicine, Academic Medicine
+- JMIR, [target journal], Academic Medicine
 - 최소: n=100명 이상
 - Accept 가능성: 60-90%
 

@@ -92,7 +92,7 @@ Pipeline-2: Educational Effectiveness
 - Q2: Human in the loop 보완 효과
 - Q3: Multiagent vs Human 비교 (선택적)
 - **프레이밍**: "AI-Generated Medical Education Content: Quality Validation and Human-AI Collaboration"
-- **저널**: Medical Education, Academic Medicine, BMC Medical Education
+- **저널**: Medical Education, Academic Medicine, [target journal]
 
 **논문 2: Educational Effectiveness**
 - Q4: 실제 학습 효과
@@ -105,7 +105,7 @@ Pipeline-2: Educational Effectiveness
 - S0 Expert QA 결과
 - 6-arm comparison
 - **프레이밍**: "Evaluating LLM-Generated Medical Education Content: A 6-Arm Factorial Design"
-- **저널**: Medical Education, BMC Medical Education
+- **저널**: Medical Education, [target journal]
 
 **논문 2: Human-AI Collaboration (Q2, Q3)**
 - Human in the loop 효과
@@ -176,7 +176,7 @@ Pipeline-2: Educational Effectiveness
 
 **저널 후보**:
 - Medical Education
-- BMC Medical Education
+- [target journal]
 - Academic Medicine
 
 ---

@@ -70,7 +70,7 @@ n_total <- ceiling(34 * 2 * 1.2)  # ~82 total
    ```
 
 3. **보수적 저널 선택**
-   - BMC Medical Education (pilot study 수용)
+   - [target journal] (pilot study 수용)
    - PLOS ONE (exploratory study)
    - 저IF 저널
 
@@ -140,7 +140,7 @@ n_total <- ceiling(45 * 2 * 1.2)  # ~108 total
    ```
 
 3. **보수적 저널 선택 권장**
-   - BMC Medical Education
+   - [target journal]
    - Medical Teacher
    - Journal of Medical Education
 
@@ -213,7 +213,7 @@ n_total <- ceiling(64 * 2 * 1.2)  # ~154 total
 
 **전략:**
 - **Pilot study로 포지셔닝**
-- **보수적 저널 선택** (BMC Medical Education, PLOS ONE)
+- **보수적 저널 선택** ([target journal], PLOS ONE)
 - **큰 효과만 검출 가능** 명시
 - **Future work에 확대 연구 언급**
 
@@ -229,7 +229,7 @@ n_total <- ceiling(64 * 2 * 1.2)  # ~154 total
 - **표준 연구로 포지셔닝**
 - **중간-큰 효과 검출 가능** 명시
 - **Subgroup analysis는 exploratory**로 명시
-- **보수적 저널 선택** (BMC Medical Education, Medical Teacher)
+- **보수적 저널 선택** ([target journal], Medical Teacher)
 
 **논문 제목 예시:**
 - "Effectiveness of AI-Generated Educational Content..."
@@ -243,7 +243,7 @@ n_total <- ceiling(64 * 2 * 1.2)  # ~154 total
 - **표준 연구로 포지셔닝**
 - **중간 효과 검출 가능** 명시
 - **모든 분석 포함**
-- **표준 저널 선택** (BMC Medical Education, JMIR, npj Digital Medicine)
+- **표준 저널 선택** ([target journal], JMIR, [target journal])
 
 **Accept 가능성: 80-90%**
 
@@ -253,7 +253,7 @@ n_total <- ceiling(64 * 2 * 1.2)  # ~154 total
 
 ### 5.1 보수적 저널 (Pilot study 수용)
 
-**BMC Medical Education, PLOS ONE, Medical Teacher**
+**[target journal], PLOS ONE, Medical Teacher**
 
 **최소 요구사항:**
 - n=40 per group (총 80명) 가능
@@ -267,7 +267,7 @@ n_total <- ceiling(64 * 2 * 1.2)  # ~154 total
 
 ### 5.2 표준 저널
 
-**JMIR, npj Digital Medicine, Academic Medicine**
+**JMIR, [target journal], Academic Medicine**
 
 **최소 요구사항:**
 - n=50 per group (총 100명) 이상
